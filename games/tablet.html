@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MOR-TON STUDIO - Math Scaffolding Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; }
+    
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      background: #dcedc8;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .tablet-container {
+      position: relative;
+      width: 92vw;
+      max-width: 980px;
+      height: 88vh;
+      max-height: 660px;
+      background: #18181b;
+      border-radius: 28px;
+      padding: 16px;
+      padding-bottom: 28px;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25), 
+                  0 10px 25px rgba(0, 0, 0, 0.15),
+                  inset 0 0 15px rgba(255, 255, 255, 0.1);
+      border: 3px solid #27272a;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tablet-container::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      right: 32px;
+      width: 8px;
+      height: 8px;
+      background-color: #3b82f6;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #3b82f6, 0 0 15px #1d4ed8;
+      animation: pulse-blue 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulse-blue {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .tablet-brand-logo {
+      position: absolute;
+      bottom: 7px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      background: linear-gradient(135deg, #71717a 0%, #e4e4e7 35%, #a1a1aa 50%, #f4f4f5 70%, #52525b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.2));
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .tablet-screen {
+      flex: 1;
+      background: #f1f8e9;
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #c5e1a5;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+    }
+
+    .tablet-header {
+      background: #e8f5e9;
+      padding: 6px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #c5e1a5;
+    }
+
+    .header-left-group, .header-right-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* ปุ่มคลิกเลือกบทเรียนที่หัวข้อ */
+    .tablet-title-btn {
+      background: #c8e6c9;
+      color: #2e7d32;
+      border: 1px solid #a5d6a7;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .tablet-title-btn:hover {
+      background: #b9f6ca;
+      border-color: #81c784;
+      transform: translateY(-1px);
+    }
+
+    .header-step-badge {
+      background: #c8e6c9;
+      color: #2e7d32;
+      padding: 3px 10px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #a5d6a7;
+    }
+
+    .power-btn {
+      width: 34px;
+      height: 34px;
+      background: #09090b;
+      border: 2px solid #00e5ff;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+      transition: all 0.2s ease;
+      padding: 0;
+    }
+
+    .power-btn svg {
+      width: 17px;
+      height: 17px;
+      stroke: #00e5ff;
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+    }
+
+    .tablet-content-area {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* แผงปุ่มคณิตศาสตร์ด้านซ้าย */
+    .math-sidebar {
+      width: 76px;
+      background: #1e293b;
+      border-right: 1px solid #334155;
+      padding: 6px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+      align-items: center;
+    }
+
+    .math-sidebar::-webkit-scrollbar { width: 3px; }
+    .math-sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+
+    .math-btn {
+      width: 62px;
+      height: 34px;
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .math-btn:hover { background: #3b82f6; border-color: #60a5fa; }
+
+    .math-symbol-view {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      font-size: 11px;
+    }
+    .math-symbol-view .top-part {
+      border-bottom: 1px solid #f8fafc;
+      padding-bottom: 1px;
+      width: 100%;
+      text-align: center;
+    }
+    .math-symbol-view .bottom-part {
+      padding-top: 1px;
+      width: 100%;
+      text-align: center;
+    }
+    .math-symbol-view.root-n {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 1px;
+    }
+    .math-symbol-view.root-n .sup-index {
+      font-size: 8.5px;
+      margin-top: -2px;
+    }
+
+    /* พื้นที่แสดงโจทย์ Scaffolding */
+    .tablet-body {
+      flex: 1;
+      padding: 20px;
+      padding-bottom: 70px;
+      overflow-y: auto;
+      color: #1b5e20;
+      background: #f1f8e9;
+      display: flex;
+      gap: 16px;
+    }
+
+    /* แถบดวงไฟนีออนแนวตั้งด้านขวา */
+    .tracker-sidebar {
+      width: 54px;
+      background: linear-gradient(180deg, #e8f5e9 0%, #dcedc8 100%);
+      border-left: 1px solid #c5e1a5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px 0;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .tracker-sidebar::before {
+      content: '';
+      position: absolute;
+      width: 3px;
+      top: 24px;
+      bottom: 35px;
+      background: #c5e1a5;
+      z-index: 1;
+      border-radius: 2px;
+    }
+
+    .tracker-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .tracker-dot {
+      width: 14px;
+      height: 14px;
+      background-color: #d1e7dd;
+      border-radius: 50%;
+      border: 2px solid #a3cfbb;
+      transition: all 0.4s ease;
+    }
+
+    .tracker-item.completed .tracker-dot {
+      background-color: #10b981;
+      border-color: #059669;
+      box-shadow: 0 0 12px #10b981;
+    }
+
+    .tracker-item.active .tracker-dot {
+      background-color: #ef4444;
+      border-color: #b91c1c;
+      box-shadow: 0 0 15px #ef4444;
+      animation: neon-pulse 1.2s infinite alternate ease-in-out;
+    }
+
+    @keyframes neon-pulse {
+      0% { transform: scale(1); box-shadow: 0 0 8px #ef4444; }
+      100% { transform: scale(1.25); box-shadow: 0 0 18px #ef4444; }
+    }
+
+    .tracker-item.unlocked { cursor: pointer; }
+    .tracker-label-bottom { font-size: 11px; color: #15803d; font-weight: 700; margin-top: 2px; }
+
+    /* ปุ่มเลื่อนข้อ */
+    .nav-buttons-container {
+      position: absolute;
+      bottom: 16px;
+      right: 74px;
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    .nav-circle-btn {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
+      border: 1.5px solid #38bdf8;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 110, 200, 0.18);
+      transition: all 0.2s ease;
+    }
+
+    .nav-circle-btn svg { width: 20px; height: 20px; stroke: #0284c7; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+    .nav-circle-btn:hover { background: #e0f2fe; transform: scale(1.08); }
+
+    /* Modal เลือกบทเรียน */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      backdrop-filter: blur(3px);
+    }
+    .modal-box {
+      background: #ffffff;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      border: 2px solid #c5e1a5;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #2e7d32;
+    }
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #64748b;
+    }
+    .modal-body {
+      max-height: 350px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .lesson-option-item {
+      padding: 10px 14px;
+      background: #f1f8e9;
+      border: 1px solid #a5d6a7;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #1b5e20;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .lesson-option-item:hover {
+      background: #c8e6c9;
+      border-color: #4caf50;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="tablet-container">
+    <div class="tablet-brand-logo">MOR-TON STUDIO</div>
+
+    <div class="tablet-screen">
+      <div class="tablet-header">
+        <div class="header-left-group">
+          <!-- ปุ่มเปิดเมนูเลือกบทเรียนแบบชัดเจน มีไอคอนและลูกศรชี้ลง -->
+          <button class="tablet-title-btn" onclick="openLessonModal()" title="คลิกเพื่อเปลี่ยนบทเรียน">
+            💻 <span id="headerTitle">กำลังโหลด...</span> ▼
+          </button>
+        </div>
+        <div class="header-right-group">
+          <div class="header-step-badge" id="stepBadge">วันที่ 1 | ข้อที่ 1 / 10</div>
+          <button class="power-btn" onclick="goBack()" title="ปิดหน้าจอ">
+            <svg viewBox="0 0 24 24">
+              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+              <line x1="12" y1="2" x2="12" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="tablet-content-area">
+        <!-- แผงปุ่มคณิตศาสตร์แนวตั้ง -->
+        <div class="math-sidebar">
+          <button class="math-btn" onclick="insertSymbol('√')">&radic;x</button>
+          <button class="math-btn" onclick="insertSymbol('∛')">
+            <span class="math-symbol-view root-n"><span class="sup-index">n</span>&radic;x</span>
+          </button>
+          <button class="math-btn" onclick="insertSymbol('^2')">x&#7497;</button>
+          <button class="math-btn" onclick="insertSymbol('/')">
+            <span class="math-symbol-view"><span class="top-part">a</span><span class="bottom-part">b</span></span>
+          </button>
+          <button class="math-btn" onclick="insertSymbol('(')">(</button>
+          <button class="math-btn" onclick="insertSymbol(')')">)</button>
+          <button class="math-btn" onclick="insertSymbol('{')">{</button>
+          <button class="math-btn" onclick="insertSymbol('}')">}</button>
+          <button class="math-btn" onclick="insertSymbol('+')">+</button>
+          <button class="math-btn" onclick="insertSymbol('-')">-</button>
+          <button class="math-btn" onclick="insertSymbol('×')">&times;</button>
+          <button class="math-btn" onclick="insertSymbol('÷')">&divide;</button>
+          <button class="math-btn" onclick="insertSymbol('±')">&plusmn;</button>
+          <button class="math-btn" onclick="insertSymbol('π')">&pi;</button>
+          <button class="math-btn" onclick="insertSymbol('x')">x</button>
+          <button class="math-btn" onclick="insertSymbol('y')">y</button>
+        </div>
+
+        <div class="tablet-body" id="scaffoldContent"></div>
+
+        <div class="tracker-sidebar" id="dayTracker"></div>
+
+        <div class="nav-buttons-container">
+          <button class="nav-circle-btn prev" onclick="prevQuestion()" title="ข้อก่อนหน้า">
+            <svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"></path></svg>
+          </button>
+          <button class="nav-circle-btn next" onclick="nextQuestion()" title="ข้อถัดไป">
+            <svg viewBox="0 0 24 24" style="transform: scaleX(-1);"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal สำหรับเลือกบทเรียน -->
+  <div class="modal-overlay" id="lessonModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span>📚 เลือกบทเรียนฝึกหัด</span>
+        <button class="modal-close-btn" onclick="closeLessonModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="lessonListContainer">
+        <!-- รายชื่อบทเรียนจะถูกสร้างอัตโนมัติจากฐานข้อมูล -->
+      </div>
+    </div>
+  </div>
+
+  <!-- เชื่อมโยงไฟล์ฐานข้อมูลและเอนจิ้นภายนอก -->
+  <script src="../js/database.js"></script>
+  <script src="../js/engine.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentLevel = urlParams.get('level') || 'm1';
+    const currentTopic = urlParams.get('topic') || 'm1_t1_c1';
+
+    window.addEventListener('DOMContentLoaded', () => {
+        // อัปเดตชื่อหัวข้อบนปุ่มให้ตรงกับบทเรียนปัจจุบัน
+        const headerTitle = document.getElementById('headerTitle');
+        if (headerTitle && typeof getTopicName === 'function') {
+            headerTitle.innerText = getTopicName(currentTopic);
+        } else if (headerTitle) {
+            headerTitle.innerText = currentTopic;
+        }
+
+        // เริ่มต้นโหลดโจทย์
+        if (typeof initScaffoldingEngine === 'function') {
+            initScaffoldingEngine(currentLevel, currentTopic);
+        }
+    });
+
+    function openLessonModal() {
+      const modal = document.getElementById('lessonModal');
+      const container = document.getElementById('lessonListContainer');
+      container.innerHTML = '';
+
+      let allTopics = {};
+      if (typeof masterLessonDatabase !== 'undefined') {
+        Object.keys(masterLessonDatabase).forEach(lvlKey => {
+          const topics = masterLessonDatabase[lvlKey];
+          Object.keys(topics).forEach(tKey => {
+            allTopics[tKey] = {
+              level: lvlKey,
+              title: topics[tKey].title || tKey
+            };
+          });
+        });
+      }
+      if (typeof database_m2 !== 'undefined') {
+        Object.keys(database_m2).forEach(tKey => {
+          allTopics[tKey] = {
+            level: 'm2',
+            title: database_m2[tKey].title || tKey
+          };
+        });
+      }
+
+      const keys = Object.keys(allTopics);
+      if (keys.length === 0) {
+        container.innerHTML = `<div style="padding: 10px; color: #64748b;">ไม่พบข้อมูลบทเรียนในฐานข้อมูล</div>`;
+      } else {
+        keys.forEach(tKey => {
+          const item = allTopics[tKey];
+          const div = document.createElement('div');
+          div.className = 'lesson-option-item';
+          div.innerText = `📖 ${item.title} (${item.level.toUpperCase()})`;
+          div.onclick = () => {
+            window.location.href = `tablet.html?level=${item.level}&topic=${tKey}`;
+          };
+          container.appendChild(div);
+        });
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function closeLessonModal() {
+      document.getElementById('lessonModal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

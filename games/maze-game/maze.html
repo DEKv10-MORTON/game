@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft 3D Escape - Pacman Mode</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="intro.css">
+  <script src="intro.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #090d16;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .game-container {
+      position: relative;
+      width: 95%;
+      max-width: 380px;
+      background: #111827;
+      border: 2px solid #ef4444;
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.2);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+    }
+    .title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ef4444;
+      letter-spacing: 0.5px;
+    }
+    .status-group {
+      display: flex;
+      gap: 8px;
+      font-size: 10px;
+      font-family: 'Orbitron', sans-serif;
+    }
+    .level-badge { color: #38bdf8; font-weight: bold; }
+    .giant-badge { color: #f59e0b; font-weight: bold; }
+    
+    .screen-wrapper {
+      position: relative;
+      width: 100%;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid #1f2937;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 210px;
+      background: #000;
+    }
+    
+    .power-alert {
+      height: 22px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fde047;
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px dashed #eab308;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      opacity: 0;
+    }
+    .power-alert.active {
+      opacity: 1;
+      animation: pulseAlert 0.8s infinite alternate;
+    }
+    @keyframes pulseAlert {
+      from { transform: scale(1); }
+      to { transform: scale(1.02); }
+    }
+
+    .controls-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+      margin-top: 2px;
+    }
+    .dpad {
+      display: grid;
+      grid-template-columns: repeat(3, 38px);
+      grid-template-rows: repeat(2, 36px);
+      gap: 3px;
+    }
+    .btn-ctrl {
+      background: #1f2937;
+      border: 1px solid #374151;
+      color: #f3f4f6;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 0 #111827;
+    }
+    .btn-ctrl:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #111827;
+      background: #ef4444;
+      color: #fff;
+    }
+    .btn-action {
+      width: 75px;
+      height: 55px;
+      background: #ca8a04;
+      border: 1px solid #eab308;
+      color: #fff;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 0 #713f12;
+    }
+    .btn-action:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #713f12;
+      background: #eab308;
+    }
+    .hint {
+      font-size: 10px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+
+<div class="game-container">
+  <div class="header">
+    <div class="title">🟥 RED ESCAPE: PACMAN</div>
+    <div class="status-group">
+      <div class="level-badge" id="levelTxt">LVL 1</div>
+      <div class="giant-badge" id="giantStatus">ยักษ์: 3/3</div>
+    </div>
+  </div>
+
+  <div class="screen-wrapper">
+    <canvas id="screen" width="320" height="200"></canvas>
+  </div>
+
+  <div class="power-alert" id="powerAlert">⚡ มีพลังแล้ว! เข้าใกล้แล้วกด SPACEBAR / ปุ่มขวา</div>
+
+  <div class="controls-wrapper">
+    <div class="dpad">
+      <div></div>
+      <button class="btn-ctrl" onmousedown="startMove('F')" onmouseup="stopMove()" ontouchstart="startMove('F')" ontouchend="stopMove()">▲</button>
+      <div></div>
+      <button class="btn-ctrl" onmousedown="startMove('L')" onmouseup="stopMove()" ontouchstart="startMove('L')" ontouchend="stopMove()">◄</button>
+      <button class="btn-ctrl" onmousedown="startMove('B')" onmouseup="stopMove()" ontouchstart="startMove('B')" ontouchend="stopMove()">▼</button>
+      <button class="btn-ctrl" onmousedown="startMove('R')" onmouseup="stopMove()" ontouchstart="startMove('R')" ontouchend="stopMove()">►</button>
+    </div>
+    
+    <button class="btn-action" onclick="triggerAction()" ontouchend="triggerAction()">
+      <span>⚔️</span>
+      <span style="font-size:9px;">กำจัดยักษ์</span>
+    </button>
+  </div>
+
+  <div class="hint">เก็บไข่ 🥚 เพื่อรับพลัง แล้วเข้าใกล้ตัวยักษ์เพื่อกำจัด!</div>
+</div>
+
+<script>
+const canvas = document.getElementById('screen');
+const ctx = canvas.getContext('2d');
+
+const baseMapTemplate = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
+  [1,0,1,0,1,0,1,1,1,0,1,0,1,1,0,1],
+  [1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,1],
+  [1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1],
+  [1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+  [1,1,1,0,1,0,1,1,1,1,0,1,1,1,0,1],
+  [1,0,0,0,1,0,0,0,0,1,0,0,0,1,0,1],
+  [1,0,1,1,1,1,1,1,0,1,1,1,0,1,0,1],
+  [1,0,0,0,0,0,0,1,0,0,0,1,0,1,0,1],
+  [1,1,1,1,0,1,0,1,1,1,0,1,0,1,0,1],
+  [1,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1],
+  [1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1],
+  [1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1],
+  [1,0,1,1,1,1,0,1,1,1,1,1,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
+
+let currentMap = [];
+let currentLevel = 1;
+let gameState = 'COUNTDOWN'; // กำหนดให้สถานะเริ่มต้นเป็น COUNTDOWN เสมอ
+let countdownTimer = 180;    // เวลาเริ่มต้น 3 วินาที
+
+let player = { x: 1.5, y: 1.5, dir: 0, moveSpeed: 0.05, rotSpeed: 0.05 };
+let giants = [];
+let egg = null;
+let eggRespawnTimer = 0;
+let exitPos = { x: 14.5, y: 14.5 };
+let powerTimer = 0;
+
+let particles = [];
+let keys = {};
+let activeTouchMove = null;
+
+document.addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    triggerAction();
+  }
+});
+document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+function startMove(dir) { activeTouchMove = dir; }
+function stopMove() { activeTouchMove = null; }
+
+function triggerAction() {
+  if (gameState !== 'PLAYING') return;
+  
+  if (powerTimer > 0) {
+    giants.forEach(g => {
+      if (!g.alive) return;
+      let gdx = player.x - g.x;
+      let gdy = player.y - g.y;
+      let gdist = Math.sqrt(gdx * gdx + gdy * gdy);
+      if (gdist < 1.2) {
+        g.alive = false;
+      }
+    });
+  }
+}
+
+function spawnSingleEgg() {
+  let emptyCells = [];
+  for(let r=1; r<15; r++) {
+    for(let c=1; c<15; c++) {
+      if(currentMap[r][c] === 0) {
+        emptyCells.push({x: c + 0.5, y: r + 0.5});
+      }
+    }
+  }
+  if(emptyCells.length > 0) {
+    let idx = Math.floor(Math.random() * emptyCells.length);
+    egg = emptyCells[idx];
+  }
+}
+
+function initLevel() {
+  currentMap = baseMapTemplate.map(row => [...row]);
+  
+  let emptyCells = [];
+  for(let r=1; r<15; r++) {
+    for(let c=1; c<15; c++) {
+      if(currentMap[r][c] === 0 && (r > 2 || c > 2)) {
+        emptyCells.push({x: c + 0.5, y: r + 0.5});
+      }
+    }
+  }
+
+  spawnSingleEgg();
+  eggRespawnTimer = 0;
+
+  giants = [];
+  let giantSpeeds = 0.022 + (currentLevel * 0.002);
+  for(let i=0; i<3; i++) {
+    if(emptyCells.length > 0) {
+      let idx = Math.floor(Math.random() * emptyCells.length);
+      let pos = emptyCells.splice(idx, 1)[0];
+      giants.push({ x: pos.x, y: pos.y, speed: giantSpeeds, alive: true });
+    }
+  }
+  
+  player.x = 1.5;
+  player.y = 1.5;
+  player.dir = 0;
+  powerTimer = 0;
+  
+  // เซ็ตค่าเพื่อนับถอยหลังทุกครั้งที่เริ่มเกมใหม่หรือเปลี่ยนด่าน
+  gameState = 'COUNTDOWN';
+  countdownTimer = 180;
+  
+  updateUI();
+}
+
+function updateUI() {
+  let aliveCount = giants.filter(g => g.alive).length;
+  document.getElementById('levelTxt').innerText = `LVL ${currentLevel}`;
+  
+  let alertBox = document.getElementById('powerAlert');
+  if (powerTimer > 0) {
+    document.getElementById('giantStatus').innerText = `⚡ พลังงาน (${Math.ceil(powerTimer/60)}s)`;
+    alertBox.classList.add('active');
+  } else {
+    document.getElementById('giantStatus').innerText = aliveCount > 0 ? `ยักษ์เหลือ: ${aliveCount}/3` : `🚪 ประตูเปิดแล้ว!`;
+    alertBox.classList.remove('active');
+  }
+}
+
+function isWall(x, y) {
+  let mx = Math.floor(x);
+  let my = Math.floor(y);
+  if (mx < 0 || mx >= 16 || my < 0 || my >= 16) return true;
+  return currentMap[my][mx] === 1;
+}
+
+function initConfetti() {
+  particles = [];
+  const colors = ['#38bdf8', '#f59e0b', '#ef4444', '#10b981'];
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: canvas.width / 2, y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.7) * 8,
+      size: Math.random() * 4 + 2, color: colors[Math.floor(Math.random() * colors.length)], gravity: 0.15
+    });
+  }
+}
+
+function updateConfetti() {
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += p.gravity;
+  });
+}
+
+function renderConfetti() {
+  particles.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+  });
+}
+
+function update() {
+  if (gameState === 'COUNTDOWN') {
+    if (countdownTimer > 0) {
+      countdownTimer--;
+      if (countdownTimer === 0) {
+        gameState = 'PLAYING';
+      }
+    }
+    return;
+  }
+
+  if (gameState !== 'PLAYING') return;
+
+  let moveX = 0, moveY = 0;
+  if (keys['w'] || keys['arrowup'] || activeTouchMove === 'F') {
+    moveX += Math.cos(player.dir) * player.moveSpeed;
+    moveY += Math.sin(player.dir) * player.moveSpeed;
+  }
+  if (keys['s'] || keys['arrowdown'] || activeTouchMove === 'B') {
+    moveX -= Math.cos(player.dir) * player.moveSpeed;
+    moveY -= Math.sin(player.dir) * player.moveSpeed;
+  }
+  if (keys['a'] || keys['arrowleft'] || activeTouchMove === 'L') player.dir -= player.rotSpeed;
+  if (keys['d'] || keys['arrowright'] || activeTouchMove === 'R') player.dir += player.rotSpeed;
+
+  if (!isWall(player.x + moveX * 1.8, player.y)) player.x += moveX;
+  if (!isWall(player.x, player.y + moveY * 1.8)) player.y += moveY;
+
+  if (egg !== null) {
+    let edx = player.x - egg.x;
+    let edy = player.y - egg.y;
+    if (Math.sqrt(edx*edx + edy*edy) < 0.6) {
+      powerTimer = 360; 
+      egg = null;
+      eggRespawnTimer = 300;
+    }
+  } else {
+    if (eggRespawnTimer > 0) {
+      eggRespawnTimer--;
+      if (eggRespawnTimer === 0) {
+        spawnSingleEgg();
+      }
+    }
+  }
+
+  if (powerTimer > 0) powerTimer--;
+
+  let aliveGiants = giants.filter(g => g.alive).length;
+  if (aliveGiants === 0) {
+    let pdx = player.x - exitPos.x;
+    let pdy = player.y - exitPos.y;
+    if (Math.sqrt(pdx*pdx + pdy*pdy) < 0.6) {
+      gameState = 'WIN';
+      initConfetti();
+      return;
+    }
+  }
+
+  giants.forEach(g => {
+    if (!g.alive) return;
+
+    let gdx = player.x - g.x;
+    let gdy = player.y - g.y;
+    let gdist = Math.sqrt(gdx * gdx + gdy * gdy);
+
+    if (gdist < 0.5) {
+      if (powerTimer === 0) {
+        gameState = 'GAMEOVER';
+        return;
+      }
+    }
+
+    if (powerTimer === 0 && gdist < 10) {
+      let gMoveX = (gdx / gdist) * g.speed;
+      let gMoveY = (gdy / gdist) * g.speed;
+      if (!isWall(g.x + gMoveX, g.y)) g.x += gMoveX;
+      if (!isWall(g.x, g.y + gMoveY)) g.y += gMoveY;
+    }
+  });
+
+  updateUI();
+}
+
+function render() {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height / 2);
+  ctx.fillStyle = '#050505';
+  ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
+
+  const fov = Math.PI / 3;
+  const numRays = canvas.width;
+  const halfFov = fov / 2;
+
+  for (let i = 0; i < numRays; i++) {
+    let rayAngle = (player.dir - halfFov) + (i / numRays) * fov;
+    let distanceToWall = 0;
+    let hitWall = false;
+    let side = 0;
+
+    let cos = Math.cos(rayAngle);
+    let sin = Math.sin(rayAngle);
+    let checkX = player.x;
+    let checkY = player.y;
+
+    while (!hitWall && distanceToWall < 12) {
+      distanceToWall += 0.02;
+      checkX = player.x + cos * distanceToWall;
+      checkY = player.y + sin * distanceToWall;
+
+      if (isWall(checkX, checkY)) {
+        hitWall = true;
+        let blockX = checkX - Math.floor(checkX);
+        let blockY = checkY - Math.floor(checkY);
+        side = (Math.abs(blockX - 0.5) > Math.abs(blockY - 0.5)) ? 1 : 0;
+      }
+    }
+
+    let correctDist = distanceToWall * Math.cos(rayAngle - player.dir);
+    let wallHeight = Math.min(canvas.height, (canvas.height / correctDist));
+    let topY = (canvas.height - wallHeight) / 2;
+
+    ctx.fillStyle = (side === 0) ? '#dc2626' : '#991b1b';
+    ctx.fillRect(i, topY, 1, wallHeight);
+
+    let shadowAlpha = Math.min(0.92, Math.max(0, correctDist / 9));
+    ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
+    ctx.fillRect(i, topY, 1, wallHeight);
+  }
+
+  let aliveGiantsCount = giants.filter(g => g.alive).length;
+  if (aliveGiantsCount === 0) {
+    let edx = exitPos.x - player.x;
+    let edy = exitPos.y - player.y;
+    let edist = Math.sqrt(edx * edx + edy * edy);
+    if (edist < 10.0) {
+      let eAngle = Math.atan2(edy, edx) - player.dir;
+      while (eAngle < -Math.PI) eAngle += Math.PI * 2;
+      while (eAngle > Math.PI) eAngle -= Math.PI * 2;
+
+      if (Math.abs(eAngle) < fov) {
+        let sx = (canvas.width / 2) + Math.tan(eAngle) * (canvas.width / 2);
+        let size = Math.min(canvas.height, (canvas.height / edist) * 0.7);
+        let yPos = canvas.height / 2;
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(sx - size/4, yPos - size/2, size/2, size);
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(sx - size/8, yPos - size/4, size/4, size/2);
+      }
+    }
+  }
+
+  if (egg !== null) {
+    let edx = egg.x - player.x;
+    let edy = egg.y - player.y;
+    let edist = Math.sqrt(edx * edx + edy * edy);
+    if (edist < 8) {
+      let eAngle = Math.atan2(edy, edx) - player.dir;
+      while (eAngle < -Math.PI) eAngle += Math.PI * 2;
+      while (eAngle > Math.PI) eAngle -= Math.PI * 2;
+
+      if (Math.abs(eAngle) < fov) {
+        let sx = (canvas.width / 2) + Math.tan(eAngle) * (canvas.width / 2);
+        let eSize = Math.min(60, canvas.height / edist * 0.3);
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(sx, canvas.height/2 + 10, eSize/2, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+  }
+
+  giants.forEach(g => {
+    if (!g.alive) return;
+    let gDx = g.x - player.x;
+    let gDy = g.y - player.y;
+    let gDist = Math.sqrt(gDx * gDx + gDy * gDy);
+
+    if (gDist < 9.0) {
+      let spriteAngle = Math.atan2(gDy, gDx) - player.dir;
+      while (spriteAngle < -Math.PI) spriteAngle += Math.PI * 2;
+      while (spriteAngle > Math.PI) spriteAngle -= Math.PI * 2;
+
+      if (Math.abs(spriteAngle) < fov) {
+        let screenX = (canvas.width / 2) + Math.tan(spriteAngle) * (canvas.width / 2);
+        let size = Math.min(canvas.height, (canvas.height / gDist));
+        let yPos = canvas.height / 2;
+
+        let bodyW = size * 0.55;
+        let bodyH = size * 0.75;
+
+        ctx.fillStyle = powerTimer > 0 ? '#fde047' : '#312e81';
+        ctx.fillRect(screenX - bodyW/2, yPos - bodyH/2, bodyW, bodyH);
+
+        let eyeSize = size * 0.12;
+        ctx.fillStyle = powerTimer > 0 ? '#ea580c' : '#fbbf24';
+        ctx.fillRect(screenX - bodyW/3, yPos - bodyH/4, eyeSize, eyeSize);
+        ctx.fillRect(screenX + bodyW/6, yPos - bodyH/4, eyeSize, eyeSize);
+      }
+    }
+  });
+
+  if (gameState === 'COUNTDOWN') {
+    ctx.fillStyle = 'rgba(17, 24, 39, 0.85)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    let countVal = Math.ceil(countdownTimer / 60);
+    let displayText = countVal > 0 ? countVal : 'GO!';
+    
+    ctx.fillStyle = countVal > 0 ? '#f59e0b' : '#10b981';
+    ctx.font = 'bold 45px Orbitron, Kanit';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(displayText, canvas.width / 2, canvas.height / 2);
+  }
+
+  if (gameState === 'GAMEOVER') {
+    ctx.fillStyle = 'rgba(17, 24, 39, 0.9)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 18px Kanit';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('💀 ถูกยักษ์จับกิน!', canvas.width / 2, 70);
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '12px Kanit';
+    ctx.fillText(`ไปได้ถึง: Level ${currentLevel}`, canvas.width / 2, 98);
+    drawCanvasButton("เล่นอีกครั้ง 🔄", canvas.width / 2, 140, restartGame);
+  } else if (gameState === 'WIN') {
+    updateConfetti();
+    ctx.fillStyle = 'rgba(17, 24, 39, 0.9)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    renderConfetti();
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 18px Kanit';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('🎉 ผ่านด่านสำเร็จ!', canvas.width / 2, 70);
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '12px Kanit';
+    ctx.fillText('หนีออกจากเขาวงกตได้แล้ว', canvas.width / 2, 98);
+    drawCanvasButton(`ลุยด่าน LVL ${currentLevel + 1} ➔`, canvas.width / 2, 140, nextLevel);
+  }
+}
+
+let btnBounds = { x: 0, y: 0, w: 0, h: 0, action: null };
+function drawCanvasButton(text, x, y, action) {
+  ctx.font = 'bold 13px Kanit';
+  let tw = ctx.measureText(text).width;
+  let bw = tw + 28, bh = 32;
+  let bx = x - bw / 2, by = y - bh / 2;
+
+  ctx.fillStyle = '#0284c7';
+  ctx.beginPath();
+  ctx.roundRect(bx, by + 3, bw, bh, 10);
+  ctx.fill();
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 10);
+  ctx.fill();
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillText(text, x, y + 4);
+  btnBounds = { x: bx, y: by, w: bw, h: bh, action: action };
+}
+
+canvas.addEventListener('click', (e) => {
+  if (gameState === 'PLAYING' || gameState === 'COUNTDOWN') return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const cx = (e.clientX - rect.left) * scaleX;
+  const cy = (e.clientY - rect.top) * scaleY;
+
+  if (cx >= btnBounds.x && cx <= btnBounds.x + btnBounds.w && cy >= btnBounds.y && cy <= btnBounds.y + btnBounds.h) {
+    if (btnBounds.action) btnBounds.action();
+  }
+});
+
+function nextLevel() {
+  currentLevel++;
+  initLevel();
+}
+
+function restartGame() {
+  currentLevel = 1;
+  initLevel();
+}
+
+function gameLoop() {
+  update();
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+initLevel();
+gameLoop();
+</script>
+</body>
+</html>

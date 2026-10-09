@@ -1,0 +1,77 @@
+/* --- 🎮 Game Intro Overlay Styles --- */
+.game-intro {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #030712;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+.game-intro.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.game-intro .brand-logo-container {
+    transform: scale(1.5);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Reusing original animation classes - ensure these match or are imported */
+.game-intro .brand-text {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: 1px;
+    display: inline-block;
+    white-space: nowrap;
+    animation: syncTextRevealHide 16s linear infinite, rainbowGlow 16s linear infinite;
+}
+
+.game-intro .the-hero-o {
+    display: inline-block;
+    color: #FFFFFF;
+    font-size: 1.4rem;
+    font-weight: 900;
+    position: relative;
+    animation: syncHeroRoll 16s linear infinite, rainbowGlow 16s linear infinite;
+}
+
+/* Animations included here for standalone functionality */
+@keyframes syncHeroRoll {
+    0% { transform: translateX(-195px) translateY(-60px) scale(1); opacity: 0; }
+    3% { opacity: 1; transform: translateX(-195px) translateY(0px) scaleY(0.75) scaleX(1.25); }
+    6% { transform: translateX(-195px) translateY(-12px) scale(1); }
+    9.375% { transform: translateX(-195px) translateY(0px) scale(1); opacity: 1; }
+    21.875% { transform: translateX(0px) translateY(0px) rotate(720deg); opacity: 1; }
+    84.375% { transform: translateX(0px) translateY(0px) rotate(720deg); opacity: 1; }
+    96.875% { transform: translateX(-195px) translateY(0px) rotate(-720deg); opacity: 1; }
+    98%, 100% { transform: translateX(-195px) translateY(0px) rotate(-720deg); opacity: 0; }
+}
+
+@keyframes syncTextRevealHide {
+    0%, 9.375% { clip-path: inset(0 100% 0 0); opacity: 1; }
+    21.875% { clip-path: inset(0 0% 0 0); opacity: 1; }
+    84.375% { clip-path: inset(0 0% 0 0); opacity: 1; }
+    96.875% { clip-path: inset(0 100% 0 0); opacity: 1; }
+    96.876%, 100% { clip-path: inset(0 100% 0 0); opacity: 0; }
+}
+
+@keyframes rainbowGlow {
+    0%, 21.875% { text-shadow: 0 0 8px rgba(0, 240, 255, 0.4); color: #FFFFFF; }
+    28% { text-shadow: 0 0 12px #FF0055, 0 0 24px #FF0055; color: #FFF0F5; }
+    38% { text-shadow: 0 0 12px #FF9900, 0 0 24px #FF9900; color: #FFFFE0; }
+    48% { text-shadow: 0 0 12px #CCFF00, 0 0 24px #CCFF00; color: #FFFFF0; }
+    58% { text-shadow: 0 0 12px #00FF66, 0 0 24px #00FF66; color: #F0FFF4; }
+    68% { text-shadow: 0 0 12px #00F0FF, 0 0 24px #00F0FF; color: #F0F8FF; }
+    78% { text-shadow: 0 0 12px #BD00FF, 0 0 24px #BD00FF; color: #F8F0FF; }
+    84.375% { text-shadow: 0 0 8px rgba(0, 240, 255, 0.4); color: #FFFFFF; }
+    100% { text-shadow: 0 0 8px rgba(0, 240, 255, 0.4); color: #FFFFFF; }

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Snake 360 - DEK MORTON STUDIO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #151c2e;
+      --accent: #00f3ff;
+      --accent-glow: rgba(0, 243, 255, 0.35);
+      --red: #ff4757;
+      --yellow: #ffa502;
+      --purple: #a55eea;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+    /* การ์ดเกมหลัก ออกแบบไม่ให้ล้นขอบจอ */
+    .game-card {
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 18px;
+      width: 100%;
+      max-width: 440px;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 0 25px var(--accent-glow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .game-card::-webkit-scrollbar { width: 5px; }
+    .game-card::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+    .game-card::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+
+    .header {
+      text-align: center;
+      margin-bottom: 12px;
+      width: 100%;
+    }
+    .header h1 {
+      color: var(--accent);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 22px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+    .header p {
+      font-size: 10px;
+      color: #64748b;
+      letter-spacing: 2px;
+    }
+
+    /* แดชบอร์ดแสดงผล */
+    .dashboard {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      background: #0f172a;
+      padding: 8px 15px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .dash-item { font-size: 10px; color: #94a3b8; }
+    .dash-val { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: #fff; }
+    .score-val { color: var(--accent); }
+    .high-val { color: var(--yellow); }
+
+    /* กระดาน Canvas */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #090d16;
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* แถบสถานะบัฟ */
+    .buff-bar {
+      display: flex;
+      gap: 10px;
+      font-size: 11px;
+      margin-bottom: 10px;
+      min-height: 20px;
+    }
+    .buff-tag {
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      font-weight: bold;
+    }
+    .buff-shield { border: 1px solid var(--accent); color: var(--accent); }
+    .buff-magnet { border: 1px solid var(--purple); color: var(--purple); }
+
+    /* ปุ่มควบคุมมือถือ */
+    .controls {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .ctrl-btn {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s;
+    }
+    .ctrl-btn:active {
+      background: var(--accent);
+      color: #000;
+      transform: scale(0.95);
+    }
+    .btn-boost {
+      border-color: var(--yellow);
+      color: var(--yellow);
+    }
+    .btn-boost:active {
+      background: var(--yellow);
+      color: #000;
+    }
+
+    .btn-start {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+    .btn-start:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+
+  <div class="game-card">
+    <div class="header">
+      <h1>CYBER SNAKE 360</h1>
+      <p>DEK MORTON STUDIO</p>
+    </div>
+
+    <div class="dashboard">
+      <div class="dash-item">SCORE<br><span id="score" class="dash-val score-val">0</span></div>
+      <div class="dash-item">HIGH SCORE<br><span id="high-score" class="dash-val high-val">0</span></div>
+      <div class="dash-item">LENGTH<br><span id="length-val" class="dash-val">5</span></div>
+    </div>
+
+    <div class="buff-bar" id="buff-bar"></div>
+
+    <div class="canvas-container">
+      <canvas id="gameCanvas" width="400" height="400"></canvas>
+    </div>
+
+    <!-- ปุ่มควบคุมสไตล์ D-Pad ทรงกว้างสำหรับมือถือ -->
+    <div class="controls">
+      <button class="ctrl-btn" id="btn-left">◄ เลี้ยวซ้าย</button>
+      <button class="ctrl-btn btn-boost" id="btn-boost">⚡ BOOST</button>
+      <button class="ctrl-btn" id="btn-right">เลี้ยวขวา ►</button>
+    </div>
+
+    <button id="start-btn" class="btn-start" onclick="startGame()">START MISSION 🚀</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let score = 0;
+    let highScore = localStorage.getItem('cyber_snake_highscore') || 0;
+    document.getElementById('high-score').textContent = highScore;
+
+    let snake = [];
+    let angle = 0; // มุมงู (เรเดียน)
+    let speed = 2.5;
+    let baseSpeed = 2.5;
+    let turnSpeed = 0.08;
+    let isBoosting = false;
+    let isPlaying = false;
+    let gameLoopId = null;
+
+    // สถานะบัฟ
+    let shieldActive = false;
+    let magnetTime = 0;
+
+    // อาหาร & ไอเทม
+    let food = { x: 0, y: 0, type: 'normal' };
+
+    // คีย์บอร์ด
+    let keys = { left: false, right: false, boost: false };
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
+      if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+      if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w') keys.boost = true;
+    });
+
+    window.addEventListener('keyup', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+      if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w') keys.boost = false;
+    });
+
+    // ปุ่มกดมือถือ
+    const setupTouchBtn = (id, keyName) => {
+      const btn = document.getElementById(id);
+      btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; });
+      btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyName] = false; });
+      btn.addEventListener('mousedown', () => keys[keyName] = true);
+      btn.addEventListener('mouseup', () => keys[keyName] = false);
+    };
+    setupTouchBtn('btn-left', 'left');
+    setupTouchBtn('btn-right', 'right');
+    setupTouchBtn('btn-boost', 'boost');
+
+    function spawnFood() {
+      const types = ['normal', 'normal', 'normal', 'shield', 'magnet'];
+      const selectedType = types[Math.floor(Math.random() * types.length)];
+      food = {
+        x: 30 + Math.random() * (canvas.width - 60),
+        y: 30 + Math.random() * (canvas.height - 60),
+        type: selectedType
+      };
+    }
+
+    function startGame() {
+      snake = [];
+      const startX = canvas.width / 2;
+      const startY = canvas.height / 2;
+      angle = -Math.PI / 2; // ชี้ขึ้นบน
+      
+      // สร้างตัวงูเริ่มต้น 15 ข้อ
+      for (let i = 0; i < 15; i++) {
+        snake.push({ x: startX, y: startY + i * 3 });
+      }
+
+      score = 0;
+      shieldActive = false;
+      magnetTime = 0;
+      document.getElementById('score').textContent = score;
+      document.getElementById('length-val').textContent = snake.length;
+      document.getElementById('start-btn').style.display = 'none';
+
+      spawnFood();
+      isPlaying = true;
+
+      if (gameLoopId) cancelAnimationFrame(gameLoopId);
+      update();
+    }
+
+    function update() {
+      if (!isPlaying) return;
+
+      // 1. หมุนตัวงู
+      if (keys.left) angle -= turnSpeed;
+      if (keys.right) angle += turnSpeed;
+
+      // 2. ความเร็ว
+      speed = keys.boost ? baseSpeed * 1.8 : baseSpeed;
+
+      // 3. ขยับหัวงู
+      const head = { ...snake[0] };
+      head.x += Math.cos(angle) * speed;
+      head.y += Math.sin(angle) * speed;
+
+      // 4. บัฟแม่เหล็กดูดอาหาร
+      if (magnetTime > 0) {
+        magnetTime -= 16;
+        const dx = head.x - food.x;
+        const dy = head.y - food.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 100) {
+          food.x += (dx / dist) * 3;
+          food.y += (dy / dist) * 3;
+        }
+      }
+
+      // 5. ชนขอบสนาม
+      if (head.x < 5 || head.x > canvas.width - 5 || head.y < 5 || head.y > canvas.height - 5) {
+        if (shieldActive) {
+          shieldActive = false;
+          angle += Math.PI; // สะท้อนกลับ
+          head.x += Math.cos(angle) * 10;
+          head.y += Math.sin(angle) * 10;
+        } else {
+          gameOver();
+          return;
+        }
+      }
+
+      // 6. ชนตัวเอง (เช็คตั้งแต่ข้อที่ 10 เป็นต้นไป)
+      for (let i = 10; i < snake.length; i++) {
+        const dx = head.x - snake[i].x;
+        const dy = head.y - snake[i].y;
+        if (Math.sqrt(dx * dx + dy * dy) < 6) {
+          if (shieldActive) {
+            shieldActive = false;
+            break;
+          } else {
+            gameOver();
+            return;
+          }
+        }
+      }
+
+      snake.unshift(head);
+
+      // 7. กินอาหาร
+      const distToFood = Math.hypot(head.x - food.x, head.y - food.y);
+      if (distToFood < 12) {
+        if (food.type === 'normal') {
+          score += 100;
+        } else if (food.type === 'shield') {
+          shieldActive = true;
+          score += 50;
+        } else if (food.type === 'magnet') {
+          magnetTime = 8000; // 8 วินาที
+          score += 50;
+        }
+
+        document.getElementById('score').textContent = score;
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem('cyber_snake_highscore', highScore);
+          document.getElementById('high-score').textContent = highScore;
+        }
+
+        // เพิ่มความยาวตัวงู
+        for (let k = 0; k < 3; k++) snake.push({ ...snake[snake.length - 1] });
+        document.getElementById('length-val').textContent = snake.length;
+
+        spawnFood();
+      } else {
+        snake.pop(); // ตัดหางออกถ้ายังไม่ได้กิน
+      }
+
+      updateBuffUI();
+      draw();
+      gameLoopId = requestAnimationFrame(update);
+    }
+
+    function updateBuffUI() {
+      const container = document.getElementById('buff-bar');
+      container.innerHTML = '';
+      if (shieldActive) {
+        container.innerHTML += `<span class="buff-tag buff-shield">🛡️ SHIELD</span>`;
+      }
+      if (magnetTime > 0) {
+        container.innerHTML += `<span class="buff-tag buff-magnet">🧲 MAGNET (${Math.ceil(magnetTime/1000)}s)</span>`;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // วาดเส้นกริดพื้นหลัง
+      ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 20) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 20) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // วาดอาหาร
+      ctx.save();
+      ctx.shadowBlur = 10;
+      if (food.type === 'normal') {
+        ctx.fillStyle = '#ff4757';
+        ctx.shadowColor = '#ff4757';
+      } else if (food.type === 'shield') {
+        ctx.fillStyle = '#00f3ff';
+        ctx.shadowColor = '#00f3ff';
+      } else if (food.type === 'magnet') {
+        ctx.fillStyle = '#a55eea';
+        ctx.shadowColor = '#a55eea';
+      }
+      ctx.beginPath();
+      ctx.arc(food.x, food.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // วาดตัวงู
+      for (let i = snake.length - 1; i >= 0; i--) {
+        ctx.save();
+        ctx.beginPath();
+        const seg = snake[i];
+        const radius = i === 0 ? 7 : Math.max(3, 6 - (i * 0.03));
+
+        if (i === 0) {
+          ctx.fillStyle = '#00f3ff';
+          ctx.shadowColor = '#00f3ff';
+          ctx.shadowBlur = 12;
+        } else {
+          ctx.fillStyle = `hsl(${180 + i * 2}, 100%, 50%)`;
+        }
+
+        ctx.arc(seg.x, seg.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // วาดวงกลมโล่ล้อมรอบหัวงู
+      if (shieldActive && snake.length > 0) {
+        ctx.save();
+        ctx.strokeStyle = '#00f3ff';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#00f3ff';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(snake[0].x, snake[0].y, 14, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function gameOver() {
+      isPlaying = false;
+      ctx.fillStyle = 'rgba(11, 15, 25, 0.85)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#ff4757';
+      ctx.font = '900 26px Orbitron';
+      ctx.textAlign = 'center';
+      ctx.fillText('MISSION FAILED', canvas.width / 2, canvas.height / 2 - 10);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '14px Kanit';
+      ctx.fillText(`คะแนนที่ทำได้: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+
+      const startBtn = document.getElementById('start-btn');
+      startBtn.style.display = 'block';
+      startBtn.textContent = 'RETRY MISSION 🔄';
+    }
+
+    // วาดหน้าแรก
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  </script>
+</body>
+</html>

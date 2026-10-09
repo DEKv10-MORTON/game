@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEK MORTON STUDIO - Game Portal & Arcade Hub</title>
+
+    <!-- Google Fonts: Kanit & Orbitron -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&family=Orbitron:wght@700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Firebase SDK (v10 Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <!-- Database Files -->
+    <script src="js/database.js"></script>
+    <script src="js/database_m2.js"></script>
+
+    <!-- External CSS File -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- 1. Header -->
+    <header class="header" style="justify-content: center;">
+        <div class="brand-logo-container">
+            <span class="brand-text">DEK MORTON STUDI</span>
+            <span class="the-hero-o">O</span>
+        </div>
+    </header>
+
+    <!-- 2. Main Content Area -->
+    <main class="main-content" style="margin-left: 0; width: 100%; padding: 20px;">
+
+        <div class="honeycomb-container"></div>
+
+        <div class="main-hero-logo">
+            <h1 class="hero-math-text">Math & Games Hub</h1>
+            <p class="hero-sub-text">ศูนย์รวมมินิเกมและการเรียนรู้สำหรับเด็กไทย</p>
+        </div>
+
+        <!-- 🎮 3. DYNAMIC ARCADE CONSOLE STAGE -->
+        <section class="game-section">
+            <div class="arcade-frame">
+                <div class="screen-bezel" id="dynamic-stage-container">
+
+                    <!-- ส่วนตัวเกม (Default Display) -->
+                    <div id="game-stage-wrapper" class="game-wrapper">
+                        <canvas id="fx-canvas"></canvas>
+
+                        <div class="game-header">
+                            <div>ระดับความรู้: <span id="disp-level" class="level-badge">มัธยม 1</span></div>
+                            <div style="font-family: 'Orbitron';">ข้อที่: <span id="disp-progress"
+                                    style="color:var(--accent-lime);">0</span> / 20</div>
+                        </div>
+
+                        <div class="game-body">
+                            <div class="power-bar-container power-bar-left" title="พลังตอบถูก">
+                                <div id="bar-correct" class="power-fill fill-correct"></div>
+                            </div>
+
+                            <div id="play-area" class="play-area"></div>
+
+                            <div class="power-bar-container power-bar-right" title="พลังตอบผิด">
+                                <div id="bar-wrong" class="power-fill fill-wrong"></div>
+                            </div>
+                        </div>
+
+                        <div class="drop-zones-container">
+                            <div id="zone-true" class="drop-zone zone-true">✓ ถูก (TRUE)</div>
+                            <div id="zone-false" class="drop-zone zone-false">✕ ผิด (FALSE)</div>
+                        </div>
+
+                        <div id="overlay" class="overlay-screen">
+                            <h1 id="overlay-title" class="game-title">🧠 MATH WARM-UP BRAIN</h1>
+                            <p id="overlay-desc" style="color:#A0AEC0; max-width:420px; font-size:0.88rem;">
+                                ลากแท่งโจทย์คณิตศาสตร์ที่โปรยลงมา ไปใส่กล่อง <b
+                                    style="color:var(--accent-cyan)">"ถูก"</b> หรือ <b
+                                    style="color:var(--accent-red)">"ผิด"</b> ให้ถูกต้อง ก่อนที่จะตกถึงพื้น!
+                            </p>
+
+                            <div id="level-select-box">
+                                <p style="margin-top:10px; font-size:0.85rem;">เลือกระดับชั้นเรียน:</p>
+                                <div class="select-level-group">
+                                    <button class="lvl-btn m1" onclick="selectLevel('m1', this)">ม.1</button>
+                                    <button class="lvl-btn m2" onclick="selectLevel('m2', this)">ม.2</button>
+                                    <button class="lvl-btn m3" onclick="selectLevel('m3', this)">ม.3</button>
+                                </div>
+                            </div>
+
+                            <button id="btn-action" class="btn-start" onclick="startGame()">START GAME</button>
+                        </div>
+                    </div>
+
+                    <div id="lesson-summary-wrapper" class="summary-stage-view" style="display: none;"></div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- 📢 Announcement Section (พื้นที่โพสต์ประกาศ) -->
+        <section class="announcement-section">
+            <div class="announcement-header">
+                <h2 class="announcement-title">📢 บอร์ดประกาศข่าวสาร</h2>
+                <span class="announcement-badge">NEWS</span>
+            </div>
+            <div class="announcement-container">
+                <!-- ตัวอย่างการ์ดประกาศ -->
+                <div class="announcement-card">
+                    <div class="announcement-date">10 ก.ย. 2026</div>
+                    <h3 class="announcement-heading">🎓 ติวโค้งสุดท้ายก่อนสอบกลางภาค ม.2 (ภาคเรียนที่
+                        1/2569) (ครบทุกวิชา)</h3>
+                    <p class="announcement-desc">ติวสอบปลายภาค วิชาคณิตศาสตร์เพิ่มเติม ม.2 (ภาคเรียนที่ 1/2569)
+                        <a href="https://share.gemini.google/6PHhWfCzE6OP" target="_blank">คลิกดูรายละเอียด</a>
+                        <br><br>
+                        ติวสอบปลายภาค วิชาคณิตศาสตร์ ม.2 (ภาคเรียนที่ 1/2569) ทฤษฎีบทพีทาโกรัส/
+                        ความรู้เบื้องต้นเกี่ยวกับจำนวนจริง / ปริซึมและทรงกระบอก /การแปลงทางเรขาคณิต /สมบัติของเลขยกกำลัง
+                        <a href="https://share.gemini.google/9AYtqA8GyPGV" target="_blank">คลิกดูรายละเอียด</a>
+                        <br><br>
+                        ติวสอบปลายภาค วิชาประวัติศาสตร์ ม.2 (ภาคเรียนที่ 1/2569) พัฒนาการทางเศรษฐกิจสมัยอยุธยา
+                        /สภาพสังคมสมัยอยุธยา /การเสียกรุงศรีอยุธยาครั้งที่ 2 (พ.ศ. 2310)
+                        /การกอบกู้เอกราชและการสถาปนากรุงธนบุรี /ปัจจัยและความเจริญของอาณาจักรธนบุรี
+                        /การเสื่อมอำนาจของกรุงธนบุรี /ภูมิปัญญาและวัฒนธรรมสมัยอยุธยา
+                        <a href="https://share.gemini.google/MDvJpJUzWsAt" target="_blank">คลิกดูรายละเอียด</a>
+                        <br><br>
+                        ติวสอบปลายภาค วิชาสังคมศึกษา ม.2 (ภาคเรียนที่ 1/2569) เครื่องมือทางภูมิศาสตร์และการอ่านแผนที่
+                        /ทวีปยุโรป /ทวีปแอฟริกา
+                        <a href="https://share.gemini.google/w2URFLchbMEd" target="_blank">คลิกดูรายละเอียด</a>
+                        <br><br>
+                        ติวสอบปลายภาค วิชาภาษาอังกฤษ ม.2 (ภาคเรียนที่ 1/2569) Present sim / Present con / Comparison of
+                        adj / Superlative / Question Do, Does /
+                        <a href="https://share.gemini.google/BvLJEKj0T8qL" target="_blank">คลิกดูรายละเอียด</a>
+                        <br><br>
+                        ติวสอบปลายภาค วิชาโครงงานวิทยาศาสตร์ ม.2 (ภาคเรียนที่ 1/2569)
+                        <a href="https://share.gemini.google/DugxXfwNxmVW" target="_blank">คลิกดูรายละเอียด</a>
+                        <br><br>
+                        ติวสอบปลายภาค วิชาสุขศึกษา ม.2 (ภาคเรียนที่ 1/2569)
+                        <a href="https://share.gemini.google/SFm43Au2GclO" target="_blank">คลิกดูรายละเอียด</a>
+                        <br><br>
+                        ติวสอบปลายภาค วิชาภาษาไทย ม.2 (ภาคเรียนที่ 1/2569) ศิลาจารึก หลักที่ ๑ /บทละครเรื่องรามเกียรติ์
+                        ตอน นารายณ์ปราบนนทก /หลักภาษาการเขียน
+                        <a href="https://share.gemini.google/Q12lFzE7nsJi" target="_blank">คลิกดูรายละเอียด</a>
+                        <br><br>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 🎬 Free Online Tutoring & Program Links -->
+        <section class="youtube-section">
+            <h2 class="tutor-section-title">🎓 Free Online Tutoring & Mini Apps</h2>
+
+            <div class="carousel-wrapper">
+                <button class="carousel-btn btn-left" onclick="scrollCarousel(-1)">❮</button>
+
+                <div class="youtube-row-scroll" id="yt-carousel">
+
+                    <a href="https://www.youtube.com/watch?v=e90ekrpiP_c" target="_blank" class="youtube-card">
+                        <div class="thumbnail-box"><img src="https://img.youtube.com/vi/e90ekrpiP_c/maxresdefault.jpg"
+                                alt="คลิป">
+                            <div class="play-btn-overlay">▶</div>
+                        </div>
+                        <span class="youtube-label">▶ สรุปเรื่อง ระบบสมการเชิงเส้น 2 ตัวแปร | คณิต ม.3</span>
+                    </a>
+
+                    <a href="https://www.youtube.com/watch?v=6QBb28YjgWk" target="_blank" class="youtube-card">
+                        <div class="thumbnail-box"><img src="https://img.youtube.com/vi/6QBb28YjgWk/hqdefault.jpg"
+                                alt="คลิป">
+                            <div class="play-btn-overlay">▶</div>
+                        </div>
+                        <span class="youtube-label">▶ จำนวนเต็ม | คณิต ม.1</span>
+                    </a>
+
+
+                    <a href="games/ac method/Program ac method.html" target="_blank" class="youtube-card">
+                        <div class="thumbnail-box"><img src="games/ac method/math ac method.png" alt="คลิป">
+                            <div class="play-btn-overlay">▶</div>
+                        </div>
+                        <span class="youtube-label">▶ สมการ 3 พจน์ 2 วงเล็บ | คณิต</span>
+                    </a>
+
+                    <a href="games/exponent/exponent_quiz.html" target="_blank" class="youtube-card">
+                        <div class="thumbnail-box"><img src="games/exponent/exponentpic.png" alt="คลิป">
+                            <div class="play-btn-overlay">▶</div>
+                        </div>
+                        <span class="youtube-label">▶ เรื่องเลขยกกำลัง | คณิต</span>
+                    </a>
+
+                    <a href="https://bit.ly/ฟิสิกส์มอต้น" target="_blank" class="youtube-card">
+                        <div class="thumbnail-box"><img src="images/Physics.jpg" alt="คลิป">
+                            <div class="play-btn-overlay">▶</div>
+                        </div>
+                        <span class="youtube-label">▶ โปรแกรมสูตรฟิสิกส์ | ฟิสิกส์มอต้น</span>
+                    </a>
+
+                    <a href="https://www.youtube.com/watch?v=e90ekrpiP_c" target="_blank" class="youtube-card">
+                        <div class="thumbnail-box"><img src="https://img.youtube.com/vi/e90ekrpiP_c/maxresdefault.jpg"
+                                alt="คลิป">
+                            <div class="play-btn-overlay">▶</div>
+                        </div>
+                        <span class="youtube-label">▶ สรุปเรื่อง ระบบสมการเชิงเส้น 2 ตัวแปร | คณิต ม.3</span>
+                    </a>
+
+                    <a href="https://www.youtube.com/watch?v=6QBb28YjgWk" target="_blank" class="youtube-card">
+                        <div class="thumbnail-box"><img src="https://img.youtube.com/vi/6QBb28YjgWk/hqdefault.jpg"
+                                alt="คลิป">
+                            <div class="play-btn-overlay">▶</div>
+                        </div>
+                        <span class="youtube-label">▶ จำนวนเต็ม | คณิต ม.1</span>
+                    </a>
+                </div>
+
+                <button class="carousel-btn btn-right" onclick="scrollCarousel(1)">❯</button>
+            </div>
+        </section>
+
+        <!-- 🕹️ Bottom Grid: Mini Game Showcase (ขยายเต็ม 100% และลบ Global Leaderboard ออกแล้ว) -->
+        <div class="dashboard-bottom-grid" style="grid-template-columns: 1fr; width: 100%;">
+            <div class="challenges-container" style="width: 100%;">
+                <section style="position: relative;">
+                    <h3 class="section-title-blue">🔥 Featured Math Challenges</h3>
+                    <!-- 🟢 เพิ่มปุ่มเลื่อนซ้าย-ขวา -->
+                    <button class="scroll-btn prev-btn" onclick="scrollContainer('math-wrapper', -300)">❮</button>
+                    <button class="scroll-btn next-btn" onclick="scrollContainer('math-wrapper', 300)">❯</button>
+
+                    <!-- 🟢 เพิ่ม id="math-wrapper" ตรงนี้ -->
+                    <div class="game-scroll-wrapper" id="math-wrapper">
+                        <div class="cards-grid">
+                            <!-- การ์ดเกมที่ 1: เกม 24 -->
+                            <div class="course-card" onclick="openMiniGame('games/game24/game24.html')">
+                                <div class="course-thumbnail">
+                                    <img src="games/game24/game24.png" alt="GAME 24"
+                                        style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 12px;">
+                                </div>
+                                <div class="course-title">เกม 24 คิดเลขเร็ว</div>
+                                <div class="course-meta">DEK MORTON STUDIO • Mini Game</div>
+                            </div>
+
+                            <!-- การ์ดเกมที่ 2: คิดเลขเร็ว -->
+                            <div class="course-card" onclick="openMiniGame('games/speed-math/speed-math.html')">
+                                <div class="course-thumbnail">
+                                    <img src="games/speed-math/speed-math.jpg" alt="SPEED MATH"
+                                        style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 12px;">
+                                </div>
+                                <div class="course-title">คิดเลขเร็วจับเวลา</div>
+                                <div class="course-meta">DEK MORTON STUDIO • Mini Game</div>
+                            </div>
+
+                            <!-- การ์ดเกมที่ 3: ซูโดกุ -->
+                            <div class="course-card" onclick="openMiniGame('games/sudoku/sudoku.html')">
+                                <div class="course-thumbnail">
+                                    <img src="games/sudoku/sudoku.png" alt="SUDOKU"
+                                        style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 12px;">
+                                </div>
+                                <div class="course-title">ซูโดกุฝึกสมอง</div>
+                                <div class="course-meta">DEK MORTON STUDIO • Mini Game</div>
+                            </div>
+
+                            <!-- การ์ดเกมที่ 4: Prime Hunter -->
+                            <div class="course-card" onclick="openMiniGame('games/prime_hunter/prime_hunter.html')">
+                                <div class="course-thumbnail">
+                                    <img src="games/prime_hunter/prime_hunter.png" alt="prime_hunter"
+                                        style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 12px;">
+                                </div>
+                                <div class="course-title">Prime Hunter(นักล่าจำนวนเฉพาะ)</div>
+                                <div class="course-meta">DEK MORTON STUDIO • Mini Game</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section style="position: relative; margin-top: 30px;">
+                    <h3 class="section-title-blue">🎮 Recommended Relaxing Games</h3>
+
+                    <!-- วางปุ่มตรงนี้ แล้วใส่ class หรือ style ปรับ top ดึงลงมา -->
+                    <button class="scroll-btn prev-btn" style="top: 60%;"
+                        onclick="scrollContainer('relaxing-wrapper', -300)">❮</button>
+                    <button class="scroll-btn next-btn" style="top: 60%;"
+                        onclick="scrollContainer('relaxing-wrapper', 300)">❯</button>
+
+                    <div class="game-scroll-wrapper" id="relaxing-wrapper">
+                        <div class="cards-grid">
+                            <!-- การ์ดที่ 1: แข่งรถ 8-Bit -->
+                            <div class="course-card game-card"
+                                onclick="openMiniGame('games/retro-race/retro-race.html')">
+                                <div class="course-thumbnail game-thumbnail">
+                                    <img src="games/retro-race/retro-race.jpg" alt="Retro Road Racer"
+                                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                                </div>
+                                <div class="course-title">Retro Road Racer</div>
+                                <div class="course-meta">DEK MORTON STUDIO • Arcade</div>
+                                <span class="game-tag">🏎️ Classic 8-Bit</span>
+                            </div>
+
+                            <!-- การ์ดที่ 2: EGG Game -->
+                            <div class="course-card game-card" onclick="openMiniGame('games/egg-game/egg-game.html')">
+                                <div class="course-thumbnail game-thumbnail">
+                                    <img src="games/egg-game/egg-game.jpg" alt="EGG Game & Watch"
+                                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                                </div>
+                                <div class="course-title">EGG Game & Watch</div>
+                                <div class="course-meta">DEK MORTON STUDIO • Arcade</div>
+                                <span class="game-tag">🧠 Chill Brain</span>
+                            </div>
+
+                            <!-- การ์ดที่ 3: cyber_snake -->
+                            <div class="course-card game-card"
+                                onclick="openMiniGame('games/cyber_snake/cyber_snake.html')">
+                                <div class="course-thumbnail game-thumbnail">
+                                    <img src="games/cyber_snake/cyber_snake.jpg" alt="cyber_snake"
+                                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                                </div>
+                                <div class="course-title">Cyber snake</div>
+                                <div class="course-meta">DEK MORTON STUDIO • Action</div>
+                                <span class="game-tag">🧠 Chill Brain</span>
+                            </div>
+
+                            <!-- การ์ดที่ 4: nfs -->
+                            <div class="course-card game-card" onclick="openMiniGame('games/nfs/nfs.html')">
+                                <div class="course-thumbnail game-thumbnail">
+                                    <img src="games/nfs/nfs.jpg" alt="nfs"
+                                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                                </div>
+                                <div class="course-title">Need for Speed</div>
+                                <div class="course-meta">DEK MORTON STUDIO • Action</div>
+                                <span class="game-tag">🧠 Chill Brain</span>
+                            </div>
+
+
+
+                            <!-- การ์ดที่ 5: Stack Tower Neon -->
+                            <div class="course-card game-card"
+                                onclick="openMiniGame('games/Stack_Tower_Neon/Stack_Tower_Neon.html')">
+                                <div class="course-thumbnail game-thumbnail">
+                                    <img src="games/Stack_Tower_Neon/Stack_Tower_Neon.jpg" alt="Stack_Tower_Neon"
+                                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                                </div>
+                                <div class="course-title">Stack Tower Neon</div>
+                                <div class="course-meta">DEK MORTON STUDIO • Action</div>
+                                <span class="game-tag">🧠 Chill Brain</span>
+                            </div>
+
+
+
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <footer class="footer-credit">
+            <p>© 2026 DEK MORTON STUDIO | Developed with Math & Code Team</p>
+        </footer>
+
+        <!-- 👥 Team Slider Section -->
+        <div class="team-slider-section">
+            <div class="carousel" id="carousel">
+                <div class="card prev-2" onclick="setActive(0)">
+                    <div class="card-content">
+                        <div class="team-avatar"><img src="images/team03.png" alt="Team Member"></div>
+                        <h4 class="team-name">Poom</h4>
+                        <p class="team-role">Lead Developer</p>
+                    </div>
+                </div>
+
+                <div class="card prev-1" onclick="setActive(1)">
+                    <div class="card-content">
+                        <div class="team-avatar"><img src="images/team02.png" alt="Team Member"></div>
+                        <h4 class="team-name">Photo</h4>
+                        <p class="team-role">UI/UX Designer</p>
+                    </div>
+                </div>
+
+                <div class="card active" onclick="setActive(2)">
+                    <div class="card-content">
+                        <div class="team-avatar"><img src="images/team01.png" alt="Team Member"></div>
+                        <h4 class="team-name">Nakarin</h4>
+                        <p class="team-role">Project Manager</p>
+                    </div>
+                </div>
+
+                <div class="card next-1" onclick="setActive(3)">
+                    <div class="card-content">
+                        <div class="team-avatar"><img src="images/team04.png" alt="Team Member"></div>
+                        <h4 class="team-name">Program</h4>
+                        <p class="team-role">Backend Dev</p>
+                    </div>
+                </div>
+
+                <div class="card next-2" onclick="setActive(4)">
+                    <div class="card-content">
+                        <div class="team-avatar"><img src="images/team05.png" alt="Team Member"></div>
+                        <h4 class="team-name">YenTaFour</h4>
+                        <p class="team-role">Tester</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Special Thanks Section -->
+        <section class="special-thanks">
+            <div class="thanks-container">
+                <div class="thanks-text">
+                    <h3>Special Thanks :</h3>
+                    <p>Power of 10 Science Project Thanyaburi School</p>
+                    <p>Department of Mathematics</p>
+                    <p>Department of Science</p>
+                    <p>Department of Computer Science</p>
+                    <p>Thanyaburi School</p>
+                </div>
+                <div class="thanks-logos">
+                    <img src="images/ChatGPT Logo.png" alt="ChatGPT">
+                    <img src="images/Google Gemini.png" alt="Gemini">
+                </div>
+            </div>
+        </section>
+
+        <script>
+            function setActive(index) {
+                const cards = document.querySelectorAll('.card');
+                cards.forEach((card, i) => {
+                    card.classList.remove('active', 'prev-2', 'prev-1', 'next-1', 'next-2');
+                    let diff = i - index;
+                    if (diff === 0) {
+                        card.classList.add('active');
+                    } else if (diff === -1 || diff === 4) {
+                        card.classList.add('prev-1');
+                    } else if (diff === -2 || diff === 3) {
+                        card.classList.add('prev-2');
+                    } else if (diff === 1 || diff === -4) {
+                        card.classList.add('next-1');
+                    } else if (diff === 2 || diff === -3) {
+                        card.classList.add('next-2');
+                    }
+                });
+            }
+
+            function openMiniGame(gameUrl) {
+                // กำหนดขนาดหน้าต่าง Popup ให้พอดีกับเกม
+                const width = 450;
+                const height = 780;
+
+                // คำนวณให้อยู่กึ่งกลางหน้าจออัตโนมัติ
+                const left = (window.screen.width / 2) - (width / 2);
+                const top = (window.screen.height / 2) - (height / 2);
+
+                // เปิดขึ้นมาเป็น Window ใหม่
+                const windowFeatures = `width=${width},height=${height},top=${top},left=${left},resizable=no,scrollbars=no,status=no,toolbar=no,menubar=no`;
+
+                window.open(gameUrl, '_blank', windowFeatures);
+            }
+
+
+
+            window.addEventListener('DOMContentLoaded', () => {
+                setActive(2);
+            });
+        </script>
+    </main>
+
+    <!-- 🪟 Modal Popup หน้าต่างเด้งสำหรับเล่นเกม -->
+    <div id="game-modal" class="modal-overlay">
+        <div class="modal-container" id="modal-container">
+            <div class="modal-header" id="modal-header">
+                <span>🎮 Mini Game Window (ลากขยับได้)</span>
+                <button class="close-btn" onclick="closeGameModal()">&times;</button>
+            </div>
+            <iframe id="game-frame" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <!-- Robot Mascot Companion -->
+    <div id="robot-companion" class="robot-container">
+        <div id="robot-bubble" class="robot-bubble">สวัสดีครับ! ยินดีต้อนรับสู่ DEK MORTON STUDIO Game Hub</div>
+        <div class="robot-body">
+            <div class="robot-antenna">
+                <div class="antenna-ball"></div>
+            </div>
+            <div class="robot-head">
+                <div class="robot-face">
+                    <div class="eye left-eye">
+                        <div class="pupil"></div>
+                    </div>
+                    <div class="eye right-eye">
+                        <div class="pupil"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="robot-zzz" class="robot-zzz">ZzZ</div>
+    </div>
+
+    <!-- External Script File -->
+    <script src="js/script.js"></script>
+</body>
+
+</html>

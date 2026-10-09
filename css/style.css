@@ -1,0 +1,2319 @@
+/* --- 1. Global Setup & Color Variables --- */
+:root {
+    --theme-teal: #000000;
+    --theme-teal-dark: #004d40;
+    --accent-lime: #CCFF00;
+    --accent-cyan: #00F0FF;
+    --accent-pink: #FF007F;
+    --accent-red: #FF3333;
+
+    --bg-content-dark: #000000;
+    --card-bg: #1e293b;
+    --text-white: #FFFFFF;
+    --text-dark: #0F172A;
+    --text-muted: #94A3B8;
+    --border-light: #334155;
+
+    --header-height: 70px;
+    --sidebar-width: 280px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    font-family: 'Kanit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--theme-teal);
+    color: var(--text-white);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Custom Scrollbar สำหรับการ์ดเนื้อหา */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-cyan);
+    border-radius: 4px;
+    box-shadow: 0 0 10px var(--accent-cyan);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-lime);
+}
+
+/* --- 2. Fixed Header --- */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-height);
+    background-image: url('1715084.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: rgba(0, 0, 0, 0.45);
+    background-blend-mode: overlay;
+    border-bottom: 3px solid rgba(0, 240, 255, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.brand-logo-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    cursor: default;
+    overflow: hidden;
+    padding-right: 20px;
+}
+
+.brand-text {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: 1px;
+    display: inline-block;
+    white-space: nowrap;
+    animation: syncTextRevealHide 16s linear infinite, rainbowGlow 16s linear infinite;
+}
+
+.the-hero-o {
+    display: inline-block;
+    color: #FFFFFF;
+    font-size: 1.4rem;
+    font-weight: 900;
+    position: relative;
+    animation: syncHeroRoll 16s linear infinite, rainbowGlow 16s linear infinite;
+}
+
+@keyframes syncHeroRoll {
+    0% {
+        transform: translateX(-195px) translateY(-60px) scale(1);
+        opacity: 0;
+    }
+
+    3% {
+        opacity: 1;
+        transform: translateX(-195px) translateY(0px) scaleY(0.75) scaleX(1.25);
+    }
+
+    6% {
+        transform: translateX(-195px) translateY(-12px) scale(1);
+    }
+
+    9.375% {
+        transform: translateX(-195px) translateY(0px) scale(1);
+        opacity: 1;
+    }
+
+    21.875% {
+        transform: translateX(0px) translateY(0px) rotate(720deg);
+        opacity: 1;
+    }
+
+    84.375% {
+        transform: translateX(0px) translateY(0px) rotate(720deg);
+        opacity: 1;
+    }
+
+    96.875% {
+        transform: translateX(-195px) translateY(0px) rotate(-720deg);
+        opacity: 1;
+    }
+
+    98%,
+    100% {
+        transform: translateX(-195px) translateY(0px) rotate(-720deg);
+        opacity: 0;
+    }
+}
+
+@keyframes syncTextRevealHide {
+
+    0%,
+    9.375% {
+        clip-path: inset(0 100% 0 0);
+        opacity: 1;
+    }
+
+    21.875% {
+        clip-path: inset(0 0% 0 0);
+        opacity: 1;
+    }
+
+    84.375% {
+        clip-path: inset(0 0% 0 0);
+        opacity: 1;
+    }
+
+    96.875% {
+        clip-path: inset(0 100% 0 0);
+        opacity: 1;
+    }
+
+    96.876%,
+    100% {
+        clip-path: inset(0 100% 0 0);
+        opacity: 0;
+    }
+}
+
+@keyframes rainbowGlow {
+
+    0%,
+    21.875% {
+        text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        color: #FFFFFF;
+    }
+
+    28% {
+        text-shadow: 0 0 12px #FF0055, 0 0 24px #FF0055;
+        color: #FFF0F5;
+    }
+
+    38% {
+        text-shadow: 0 0 12px #FF9900, 0 0 24px #FF9900;
+        color: #FFFFE0;
+    }
+
+    48% {
+        text-shadow: 0 0 12px #CCFF00, 0 0 24px #CCFF00;
+        color: #FFFFF0;
+    }
+
+    58% {
+        text-shadow: 0 0 12px #00FF66, 0 0 24px #00FF66;
+        color: #F0FFF4;
+    }
+
+    68% {
+        text-shadow: 0 0 12px #00F0FF, 0 0 24px #00F0FF;
+        color: #F0F8FF;
+    }
+
+    78% {
+        text-shadow: 0 0 12px #BD00FF, 0 0 24px #BD00FF;
+        color: #F8F0FF;
+    }
+
+    84.375% {
+        text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        color: #FFFFFF;
+    }
+
+    100% {
+        text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        color: #FFFFFF;
+    }
+}
+
+.auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stats-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 10px;
+}
+
+.counter-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    color: var(--text-white);
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #00FF66;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #00FF66;
+    animation: pulse-glow 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+        box-shadow: 0 0 12px #00FF66;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0.7;
+    }
+}
+
+.counter-number {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95rem;
+    font-weight: 900;
+}
+
+.online-num {
+    color: var(--accent-lime);
+}
+
+.total-num {
+    color: var(--accent-cyan);
+}
+
+.btn {
+    padding: 10px 22px;
+    border-radius: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.btn-register {
+    background-color: rgba(0, 0, 0, 0.4);
+    color: var(--accent-lime);
+    border: 2px solid var(--accent-lime);
+    backdrop-filter: blur(4px);
+}
+
+.btn-register:hover {
+    background-color: var(--accent-lime);
+    color: var(--theme-teal-dark);
+    transform: translateY(-2px);
+}
+
+.btn-login {
+    background-color: var(--accent-cyan);
+    color: var(--theme-teal-dark);
+    box-shadow: 0 4px 10px rgba(0, 240, 255, 0.3);
+}
+
+.btn-login:hover {
+    background-color: #33F3FF;
+    transform: translateY(-2px);
+}
+
+/* --- 3. Sidebar Navigation --- */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--theme-teal);
+    border-right: 3px solid rgba(255, 255, 255, 0.15);
+
+    /* --- แก้ไขตำแหน่งและขอบเขต Scrollbar --- */
+    position: sticky;
+    /* ใช้ sticky เพื่อให้เลื่อนตามโครงสร้างเดิม */
+    top: var(--header-height);
+    /* ตรึงตำแหน่งไว้ใต้ Header */
+    margin-top: var(--header-height);
+    /* ใช้ margin ดันขอบ Sidebar ลงมา (ทำให้ Scrollbar ไม่ทะลุขึ้นบน) */
+    height: calc(100vh - var(--header-height));
+    /* กำหนดความสูงให้พอดีกับพื้นที่ที่เหลือ */
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px 15px 40px 15px;
+    /* กำหนด padding ด้านในตามปกติ */
+    flex-shrink: 0;
+    /* ป้องกันไม่ให้ Sidebar ถูกบีบขนาด */
+    overflow-y: auto;
+    /* ให้ Scroll เฉพาะพื้นที่ภายใน Sidebar */
+    z-index: 10;
+}
+
+.nav-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-btn {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-white);
+    padding: 14px 18px;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    text-align: left;
+    font-size: 1.05rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-btn:hover {
+    background-color: rgba(204, 255, 0, 0.2);
+    border-color: var(--accent-lime);
+}
+
+.nav-btn.active {
+    background-color: var(--accent-lime);
+    color: var(--theme-teal-dark);
+    border-color: var(--accent-lime);
+    box-shadow: 0 4px 12px rgba(204, 255, 0, 0.3);
+}
+
+.arrow-icon {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.nav-btn.active .arrow-icon {
+    transform: rotate(180deg);
+}
+
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-left: 10px;
+    margin-top: 0;
+}
+
+.submenu.open {
+    max-height: 1000px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.term-header {
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: var(--accent-lime);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 8px;
+    margin-bottom: 2px;
+    padding-left: 5px;
+}
+
+.submenu-item {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.submenu-item:hover {
+    background-color: rgba(0, 240, 255, 0.15);
+    color: var(--accent-cyan);
+    border-left-color: var(--accent-cyan);
+    padding-left: 16px;
+}
+
+.exam-item {
+    background-color: rgba(255, 0, 127, 0.2);
+    color: #FFB3D9;
+    border-left: 3px solid var(--accent-pink);
+    font-weight: 800;
+    margin-top: 2px;
+}
+
+.exam-item:hover {
+    background-color: var(--accent-pink);
+    color: #FFFFFF;
+    border-left-color: #FFFFFF;
+    box-shadow: 0 4px 10px rgba(255, 0, 127, 0.4);
+}
+
+/* 💬 Society Chat UI */
+.chat-container-box {
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.nick-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+}
+
+.nick-box p {
+    font-size: 0.8rem;
+    color: var(--accent-cyan);
+    font-weight: bold;
+}
+
+.chat-input-style {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.4);
+    color: #FFF;
+    font-size: 0.82rem;
+    outline: none;
+    width: 100%;
+}
+
+.chat-input-style:focus {
+    border-color: var(--accent-cyan);
+}
+
+.chat-select-style {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    background: #004d40;
+    color: #FFF;
+    font-size: 0.8rem;
+    font-weight: bold;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.chat-btn-style {
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    background-color: var(--accent-cyan);
+    color: var(--theme-teal-dark);
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+}
+
+.chat-btn-style:hover {
+    background-color: #33F3FF;
+}
+
+.chat-main-area {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chat-info-bar {
+    font-size: 0.72rem;
+    color: var(--accent-lime);
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+}
+
+.chat-logs {
+    height: 220px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    padding: 8px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.msg-line {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.msg-sys {
+    color: var(--accent-lime);
+    font-style: italic;
+    font-size: 0.72rem;
+    text-align: center;
+}
+
+.msg-t {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-right: 4px;
+}
+
+.badge-role {
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-right: 4px;
+    color: #000;
+}
+
+.role-m1 {
+    background-color: var(--accent-cyan);
+}
+
+.role-m2 {
+    background-color: var(--accent-lime);
+}
+
+.role-m3 {
+    background-color: var(--accent-pink);
+    color: #fff;
+}
+
+.msg-u {
+    font-weight: bold;
+    color: var(--accent-lime);
+    margin-right: 4px;
+}
+
+.msg-txt {
+    color: #FFFFFF;
+}
+
+.chat-send-row {
+    display: flex;
+    gap: 6px;
+}
+
+.emoji-bar {
+    display: flex;
+    gap: 5px;
+    justify-content: space-around;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.emoji-btn {
+    background: none;
+    border: none;
+    font-size: 1.0rem;
+    cursor: pointer;
+}
+
+/* --- 4. Main Content Area & Honeycomb --- */
+.main-content {
+    flex: 1;
+    margin-top: var(--header-height);
+    background-color: var(--bg-content-dark);
+    padding: 30px 40px 80px 40px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.honeycomb-container {
+    position: fixed;
+    top: var(--header-height);
+    left: var(--sidebar-width);
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    display: grid;
+    --size: 20px;
+    --gap: 1.5px;
+    grid-template-columns: repeat(auto-fill, calc(var(--size) + var(--gap)));
+    grid-template-rows: repeat(auto-fill, calc(var(--size) * 0.866 + var(--gap)));
+    gap: var(--gap);
+    pointer-events: none;
+    overflow: hidden;
+    background-color: #000000;
+}
+
+.hexagon {
+    position: relative;
+    width: var(--size);
+    height: var(--size);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background-color: #1a1a1a;
+    transition: background-color 0.1s, box-shadow 0.2s;
+}
+
+.hexagon.active {
+    background-color: transparent;
+    border: 1px solid rgba(0, 255, 255, 0.6);
+    box-shadow: 0 0 6px rgba(0, 255, 255, 0.8);
+}
+
+.main-hero-logo,
+.game-section,
+.youtube-section,
+.dashboard-bottom-grid {
+    position: relative;
+    z-index: 1;
+}
+
+.main-hero-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.hero-math-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    line-height: 1.0;
+    text-shadow: 0 0 15px rgba(0, 240, 255, 0.8), 0 0 30px rgba(0, 240, 255, 0.4);
+    animation: heroGlow 3s ease-in-out infinite alternate;
+}
+
+.hero-sub-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #FFFFFF;
+    letter-spacing: 2px;
+    margin-top: 6px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+@keyframes heroGlow {
+    0% {
+        text-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+        transform: scale(1);
+    }
+
+    100% {
+        text-shadow: 0 0 20px rgba(204, 255, 0, 0.9);
+        transform: scale(1.02);
+    }
+}
+
+/* ==========================================================================
+   🎮 CLEAN ARCADE FRAME & DYNAMIC STAGE CONTAINER
+   ========================================================================== */
+.game-section {
+    width: 100%;
+    max-width: 780px;
+    margin-bottom: 45px;
+    display: flex;
+    justify-content: center;
+}
+
+
+
+.arcade-frame {
+    position: relative;
+    width: 100%;
+    background: #090B10;
+    border-radius: 20px;
+    padding: 6px;
+    margin-top: -10px;
+    border: 2px solid #1D2636;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 240, 255, 0.15);
+    overflow: hidden;
+    /* 1. เพิ่มเพื่อตัดขอบแสงไม่ให้ล้นมุมโค้ง */
+}
+
+/* 2. สร้างแสงวิ่งวนรอบกรอบ */
+.arcade-frame::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(transparent,
+            transparent,
+            transparent,
+            var(--accent-cyan));
+    animation: rotate-border 5s linear infinite;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* 3. บังพื้นหลังด้านในให้ทึบเหมือนเดิม */
+.arcade-frame::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: #090B10;
+    border-radius: 18px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* 4. ดันเนื้อหาข้างในให้อยู่เหนือแสง */
+.arcade-frame>* {
+    position: relative;
+    z-index: 2;
+}
+
+/* 5. คำสั่งการหมุน */
+@keyframes rotate-border {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.screen-bezel {
+    width: 100%;
+    height: 480px;
+    background: #000;
+    border-radius: 12px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.game-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #0B132B 0%, #030712 100%);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.game-header {
+    height: 42px;
+    background: rgba(0, 0, 0, 0.7);
+    border-bottom: 1.5px solid rgba(0, 240, 255, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    font-size: 0.88rem;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.level-badge {
+    background: rgba(0, 240, 255, 0.15);
+    color: var(--accent-cyan);
+    padding: 2px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--accent-cyan);
+    font-size: 0.8rem;
+}
+
+.game-body {
+    flex: 1;
+    position: relative;
+    display: flex;
+}
+
+.power-bar-container {
+    width: 32px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 4px;
+    z-index: 5;
+}
+
+.power-bar-left {
+    border-right: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.power-bar-right {
+    border-left: 1px solid rgba(255, 51, 51, 0.2);
+}
+
+.power-fill {
+    width: 100%;
+    height: 0%;
+    border-radius: 4px;
+    transition: height 0.4s;
+}
+
+.fill-correct {
+    background: linear-gradient(to top, #0088FF, var(--accent-cyan));
+    box-shadow: 0 0 10px var(--accent-cyan);
+}
+
+.fill-wrong {
+    background: linear-gradient(to top, #990000, var(--accent-red));
+    box-shadow: 0 0 10px var(--accent-red);
+}
+
+.play-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.question-card {
+    position: absolute;
+    top: 20px;
+    width: 210px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #FFF;
+    cursor: grab;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
+    z-index: 20;
+    letter-spacing: 0.5px;
+}
+
+.question-card sup {
+    font-size: 0.8em;
+    font-weight: 900;
+    color: #FFFF00;
+    margin-left: 1px;
+    position: relative;
+    top: -0.35em;
+}
+
+.card-m1 {
+    background: linear-gradient(135deg, #005580, #00aaff);
+    border: 2px solid var(--accent-cyan);
+}
+
+.card-m2 {
+    background: linear-gradient(135deg, #806600, #ffcc00);
+    border: 2px solid var(--accent-lime);
+    color: #000;
+}
+
+.card-m3 {
+    background: linear-gradient(135deg, #800040, #ff007f);
+    border: 2px solid #ff66b2;
+}
+
+.drop-zones-container {
+    height: 62px;
+    background: rgba(0, 0, 0, 0.85);
+    border-top: 1.5px solid rgba(0, 240, 255, 0.25);
+    display: flex;
+    gap: 12px;
+    padding: 8px 14px;
+    z-index: 10;
+}
+
+.drop-zone {
+    flex: 1;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    border: 2px dashed;
+}
+
+.zone-true {
+    background: rgba(0, 240, 255, 0.08);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+}
+
+.zone-true.drag-over {
+    background: rgba(0, 240, 255, 0.3);
+    transform: scale(1.02);
+}
+
+.zone-false {
+    background: rgba(255, 51, 51, 0.08);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
+.zone-false.drag-over {
+    background: rgba(255, 51, 51, 0.3);
+    transform: scale(1.02);
+}
+
+.overlay-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 8, 18, 0.94);
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    text-align: center;
+    padding: 20px;
+}
+
+.game-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+    margin-bottom: 8px;
+}
+
+.select-level-group {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.lvl-btn {
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: 2px solid;
+    background: rgba(15, 23, 42, 0.8);
+    color: #888;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s;
+    opacity: 0.6;
+}
+
+.lvl-btn.m1 {
+    border-color: var(--accent-cyan);
+}
+
+.lvl-btn.m2 {
+    border-color: var(--accent-lime);
+}
+
+.lvl-btn.m3 {
+    border-color: var(--accent-pink);
+}
+
+.lvl-btn.m1.selected {
+    background: var(--accent-cyan);
+    color: #000;
+    opacity: 1;
+    transform: scale(1.08);
+    box-shadow: 0 0 20px var(--accent-cyan);
+}
+
+.lvl-btn.m2.selected {
+    background: var(--accent-lime);
+    color: #000;
+    opacity: 1;
+    transform: scale(1.08);
+    box-shadow: 0 0 20px var(--accent-lime);
+}
+
+.lvl-btn.m3.selected {
+    background: var(--accent-pink);
+    color: #FFF;
+    opacity: 1;
+    transform: scale(1.08);
+    box-shadow: 0 0 20px var(--accent-pink);
+}
+
+.btn-start {
+    padding: 10px 36px;
+    font-size: 1.15rem;
+    font-weight: 900;
+    background: var(--accent-lime);
+    color: #000;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 0 15px var(--accent-lime);
+}
+
+.btn-start:hover {
+    transform: scale(1.06);
+}
+
+#fx-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 150;
+}
+
+/* ==========================================================================
+   📖 LESSON SUMMARY STAGE STYLE (แสดงในกรอบเมื่อกดเลือกบทเรียน)
+   ========================================================================== */
+.summary-stage-view {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #0a1128 0%, #030712 100%);
+    border-radius: 8px;
+    padding: 24px 28px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.summary-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(0, 240, 255, 0.2);
+    padding-bottom: 12px;
+}
+
+.summary-badge {
+    background: rgba(204, 255, 0, 0.15);
+    color: var(--accent-lime);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border: 1px solid var(--accent-lime);
+}
+
+.btn-back-game {
+    background: rgba(0, 240, 255, 0.1);
+    color: var(--accent-cyan);
+    border: 1px solid var(--accent-cyan);
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-back-game:hover {
+    background: var(--accent-cyan);
+    color: #000;
+}
+
+.summary-title {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    margin-top: 4px;
+}
+
+.summary-content-block h4 {
+    font-size: 1.1rem;
+    color: var(--accent-lime);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.summary-content-block p {
+    font-size: 0.95rem;
+    color: #E2E8F0;
+    line-height: 1.6;
+}
+
+.summary-bullets {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 6px;
+}
+
+.summary-bullets li {
+    font-size: 0.9rem;
+    color: #CBD5E1;
+    margin-bottom: 8px;
+    line-height: 1.5;
+    padding-left: 20px;
+    position: relative;
+}
+
+.summary-bullets li::before {
+    content: "✨";
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+/* 🎁 Call to Action Box (กรอบเส้นปะสีชมพู) */
+.cta-ipad-box {
+    background: linear-gradient(135deg, rgba(0, 96, 100, 0.6), rgba(255, 0, 127, 0.3));
+    border: 2px dashed var(--accent-pink);
+    border-radius: 16px;
+    padding: 20px 24px;
+    text-align: center;
+    position: relative;
+    margin-top: 15px;
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.2);
+}
+
+.cta-ipad-box p {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 16px;
+    line-height: 1.5;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.cta-btn-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+/* 🎬 6. YouTube Carousel Slider */
+.youtube-section {
+    width: 100%;
+    max-width: 1100px;
+    margin-bottom: 50px;
+}
+
+.tutor-section-title {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: var(--accent-cyan);
+    margin-bottom: 16px;
+}
+
+.carousel-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.youtube-row-scroll {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 8px 4px 18px 4px;
+    scrollbar-width: none;
+}
+
+.youtube-row-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.youtube-card {
+    flex: 0 0 calc(33.333% - 14px);
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-decoration: none;
+    transition: transform 0.2s;
+}
+
+.youtube-card:hover {
+    transform: translateY(-4px);
+}
+
+.thumbnail-box {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #000;
+    border: 2px solid var(--border-light);
+}
+
+.thumbnail-box img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.play-btn-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 35px;
+    background-color: #FF0000;
+    color: #FFFFFF;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.youtube-label {
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: #FFFFFF;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 40%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    background-color: var(--theme-teal);
+    color: var(--accent-lime);
+    border: 2px solid var(--accent-lime);
+    border-radius: 50%;
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.btn-left {
+    left: -22px;
+}
+
+.btn-right {
+    right: -22px;
+}
+
+/* --- 7. Bottom 2-Column Section --- */
+.dashboard-bottom-grid {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.challenges-container {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+}
+
+.section-title-blue {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: var(--accent-cyan);
+    margin-bottom: 16px;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.course-card {
+    background-color: var(--card-bg);
+    border-radius: 14px;
+    padding: 15px;
+    border: 2px solid var(--border-light);
+    transition: all 0.3s ease;
+}
+
+.course-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+}
+
+.course-thumbnail {
+    width: 100%;
+    height: 110px;
+    background-color: #0f172a;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-cyan);
+    font-weight: bold;
+    font-size: 0.9rem;
+    border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.course-title {
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: #FFFFFF;
+    margin-bottom: 6px;
+}
+
+.course-meta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.game-thumbnail {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: var(--accent-cyan);
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+.game-tag {
+    display: inline-block;
+    background-color: rgba(255, 0, 127, 0.1);
+    color: var(--accent-pink);
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-top: 4px;
+}
+
+.leaderboard-card {
+    flex: 1.2;
+    background-color: var(--theme-teal);
+    color: var(--text-white);
+    border-radius: 20px;
+    padding: 24px 20px;
+    min-width: 280px;
+}
+
+.leaderboard-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: var(--accent-lime);
+}
+
+.rank-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 12px 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* ==========================================
+   AI Robot Companion Styles
+   ========================================== */
+.robot-container {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.3s ease;
+}
+
+.robot-container:hover {
+    transform: translateY(-5px);
+}
+
+/* Speech Bubble */
+.robot-bubble {
+    position: absolute;
+    bottom: 85px;
+    right: 0;
+    white-space: nowrap;
+    background: rgba(15, 23, 42, 0.9);
+    color: #00ffcc;
+    border: 1.5px solid #00ffcc;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    box-shadow: 0 4px 15px rgba(0, 255, 204, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.robot-bubble.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Robot Antenna */
+.robot-antenna {
+    width: 4px;
+    height: 10px;
+    background: #00ffcc;
+    margin: 0 auto;
+    position: relative;
+}
+
+.antenna-ball {
+    width: 8px;
+    height: 8px;
+    background: #00ffcc;
+    border-radius: 50%;
+    position: absolute;
+    top: -6px;
+    left: -2px;
+    box-shadow: 0 0 8px #00ffcc;
+    animation: pulse-light 2s infinite alternate;
+}
+
+/* Robot Head */
+.robot-head {
+    width: 65px;
+    height: 50px;
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 2px solid #00ffcc;
+    border-radius: 16px;
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.robot-face {
+    width: 48px;
+    height: 28px;
+    background: #000;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 4px;
+}
+
+/* Eyes */
+.eye {
+    width: 14px;
+    height: 14px;
+    background: #00ffcc;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 6px #00ffcc;
+}
+
+.pupil {
+    width: 6px;
+    height: 6px;
+    background: #090d16;
+    border-radius: 50%;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    transition: transform 0.1s ease-out;
+}
+
+/* Sleep Mode Styles */
+.robot-container.sleeping .eye {
+    height: 2px;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.robot-container.sleeping .pupil {
+    display: none;
+}
+
+.robot-zzz {
+    position: absolute;
+    top: -20px;
+    right: 5px;
+    color: #00ffcc;
+    font-weight: bold;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.robot-container.sleeping .robot-zzz {
+    animation: zzz-anim 2s infinite;
+}
+
+/* Animations */
+@keyframes pulse-light {
+    0% {
+        box-shadow: 0 0 4px #00ffcc;
+    }
+
+    100% {
+        box-shadow: 0 0 12px #00ffcc;
+    }
+}
+
+@keyframes zzz-anim {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0) scale(0.8);
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(10px, -15px) scale(1.2);
+    }
+}
+
+/* --- 🌌 Canvas Background Style --- */
+#bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    /* ส่งลงไปอยู่หลังสุด */
+    background-color: #0b0d11;
+    /* สีพื้นหลังเข้มมืด */
+    pointer-events: none;
+    /* เพื่อให้คลิกทะลุไปโดนปุ่มบนเว็บได้ */
+}
+
+/* --- 🪟 CSS สำหรับ Modal Popup เล่นเกม --- */
+/* --- 🪟 CSS สำหรับ Modal Popup (ลากได้ + จัดกลางจอ) --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    backdrop-filter: blur(4px);
+    z-index: 99999 !important;
+}
+
+.modal-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* จัดให้อยู่กลางจอเป๊ะๆ */
+    width: 95%;
+    max-width: 480px;
+    height: auto;
+    /* ปรับความสูงอัตโนมัติ ไม่ให้ทะลุ */
+    max-height: 90vh;
+    background: #0f172a;
+    border: 2px solid #00ffcc;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+    overflow: hidden;
+}
+
+/* แถบ Header ไว้สำหรับจับลาก */
+.modal-header {
+    padding: 10px 16px;
+    background: #1e293b;
+    cursor: move;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+    color: #00ffcc;
+    font-weight: bold;
+}
+
+.close-btn {
+    background: #ff0055;
+    border: none;
+    color: #fff;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    /* ป้องกันปุ่มถูกบีบ */
+    line-height: 1;
+}
+
+.close-btn:hover {
+    background: #ff3377;
+    transform: scale(1.1);
+}
+
+#game-frame {
+    width: 100%;
+    height: 520px;
+    border: none;
+    display: block;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* --- 🪟 CSS สำหรับ Modal Overlay (เว้น Header + Sidebar อยู่ตรงกลางเป๊ะ) --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: var(--header-height);
+    /* 👈 เว้นหลบแถบ Header ด้านบน (70px) */
+    left: var(--sidebar-width);
+    /* 👈 เว้นหลบ Sidebar ด้านซ้าย (280px) */
+    width: calc(100vw - var(--sidebar-width));
+    /* 👈 ความกว้างคิดเฉพาะพื้นที่สีดำ */
+    height: calc(100vh - var(--header-height));
+    /* 👈 ความสูงคิดเฉพาะพื้นที่สีดำล่าง Header */
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    backdrop-filter: blur(4px);
+    z-index: 99999 !important;
+}
+
+.modal-container {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    height: 600px;
+    background: #0f172a;
+    border: 2px solid #00ffcc;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+    overflow: hidden;
+    animation: popIn 0.3s ease;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: #ff0055;
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: #ff3377;
+    transform: scale(1.1);
+}
+
+#game-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* --- 📺 CSS เอฟเฟกต์แสงสะท้อนจอกระจก --- */
+.course-thumbnail {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.course-thumbnail::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.12) 0%,
+            rgba(255, 255, 255, 0.03) 35%,
+            rgba(255, 255, 255, 0) 50%,
+            rgba(255, 255, 255, 0.08) 100%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.course-card:hover .course-thumbnail img {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}
+
+/* --- 🏷️ Footer Credit Style --- */
+.footer-credit {
+    width: 100%;
+    max-width: 1100px;
+    text-align: center;
+    padding: 30px 0 10px 0;
+    margin-top: 120px;
+    margin-top: 120px;
+    border-top: 3px solid #00F0FF;
+    /* เพิ่มความหนาเป็น 3px และปรับสีฟ้าให้สดใสเต็มที่ */
+
+    color: #FFFFFF;
+    /* เปลี่ยนจากสีเดิมเป็นสีขาวสว่างชัดเจน */
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+    /* เพิ่มเงาเรืองแสงสีฟ้าอ่อนๆ ให้ตัวหนังสือลอยเด่นขึ้น */
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    background: transparent;
+    position: relative;
+    z-index: 1;
+}
+
+
+
+/* --- 👥 Cover Flow Team Slider Style --- */
+.team-slider-section {
+    margin-top: 0px;
+    margin-bottom: 100px;
+    width: 100%;
+    padding: 20px 0;
+}
+
+.carousel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 350px;
+    position: relative;
+    perspective: 1200px;
+    padding-top: 50px;
+    overflow: visible;
+}
+
+.card {
+    width: 180px;
+    height: 240px;
+    background: rgba(18, 24, 38, 0.8);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    position: absolute;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+}
+
+.card.active {
+    width: 280px;
+    height: 340px;
+    z-index: 10;
+    background: rgba(18, 24, 38, 0.95);
+    border: 2px solid #00F0FF;
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+}
+
+.card.prev-2 {
+    transform: translateX(-240px) scale(0.85);
+    z-index: 1;
+    opacity: 0.7;
+}
+
+.card.prev-1 {
+    transform: translateX(-120px) scale(0.9);
+    z-index: 2;
+    opacity: 0.9;
+}
+
+.card.active {
+    transform: translateX(0px) scale(1);
+    z-index: 10;
+    opacity: 1;
+}
+
+.card.next-1 {
+    transform: translateX(120px) scale(0.9);
+    z-index: 2;
+    opacity: 0.9;
+}
+
+.card.next-2 {
+    transform: translateX(240px) scale(0.85);
+    z-index: 1;
+    opacity: 0.7;
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 15px;
+    width: 100%;
+}
+
+/* โค้ดใหม่ - ทำให้เต็มกรอบการ์ด */
+.team-avatar {
+    width: 100%;
+    /* ให้กว้างเท่ากับ container ของการ์ด */
+    height: 250px;
+    /* ปรับความสูงตามต้องการ แต่อย่าให้สูงเกินไปจนบังข้อความ */
+    border-radius: 0px;
+    /* ลบ border-radius ออกเพื่อให้เป็นสี่เหลี่ยม */
+    overflow: hidden;
+    border: none;
+    /* เอาเส้นขอบวงกลมออก */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    /* เพิ่มระยะห่างจากชื่อเล็กน้อย */
+}
+
+.team-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* บังคับให้รูปยืดเต็มพื้นที่โดยไม่เบี้ยว */
+    object-position: center center;
+    /* จัดให้รูปอยู่ตรงกลาง */
+}
+
+.team-name {
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin: 5px 0 2px 0;
+}
+
+.team-role {
+    color: #00F0FF;
+    font-size: 0.75rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+/* --- Special Thanks Section --- */
+.special-thanks {
+    padding: 20px 20px;
+    /* ลด padding บน-ล่างลง */
+    color: #fff;
+    /* กำหนดสีตัวอักษรหลักเป็นสีขาว */
+    margin-top: -30px;
+    /* ปรับค่าติดลบเพื่อให้ทั้งก้อนขยับขึ้นไปชิดการ์ดด้านบน */
+    background-color: transparent;
+    position: relative;
+    /* ให้ z-index ทำงาน */
+    z-index: 5;
+    /* ให้อยู่เหนือพื้นหลัง */
+}
+
+.thanks-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 60px;
+    border-top: 1px solid #00F0FF;
+    padding-top: 20px;
+    /* ลด padding ด้านในลง */
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.thanks-text h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #00F0FF;
+    /* กำหนดสีฟ้าโทนนีออนให้หัวข้อ h3 */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block !important;
+    /* บังคับให้แสดงผล */
+    opacity: 1 !important;
+    /* บังคับให้ไม่โปร่งใส */
+}
+
+.thanks-text p {
+    font-size: 13px;
+    margin: 4px 0;
+    opacity: 0.8;
+}
+
+.thanks-logos {
+    display: flex;
+    flex-direction: column;
+    /* เรียงโลโก้จากบนลงล่าง */
+    gap: 15px;
+    /* ระยะห่างระหว่างโลโก้ทั้งสองตัว */
+    align-items: center;
+    /* จัดให้อยู่กึ่งกลางแนวตั้ง */
+}
+
+.thanks-logos img {
+    height: 35px;
+    /* ปรับขนาดความสูงโลโก้ให้พอดี */
+    transition: transform 0.3s ease;
+    filter: brightness(0) invert(1);
+    /* ทำให้โลโก้เป็นสีขาว */
+}
+
+.thanks-logos img:hover {
+    transform: scale(1.1);
+}
+
+/* มือถือ */
+@media (max-width: 768px) {
+    .thanks-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .special-thanks {
+        margin-top: 0px;
+        /* บนมือถืออาจจะไม่ต้องขยับขึ้นเยอะ */
+    }
+}
+
+/* --- กำหนดภาพพื้นหลังเฉพาะส่วนเนื้อหาตรงกลาง --- */
+.main-content {
+    background-image: url('../images/bg.jpg');
+    /* ระบุตำแหน่งที่เก็บไฟล์รูปภาพของคุณ */
+    background-size: cover;
+    /* ขยายรูปให้เต็มพื้นที่พอดี */
+    background-position: center;
+    /* จัดให้รูปอยู่ตรงกลาง */
+    background-repeat: no-repeat;
+    /* ไม่ให้รูปแสดงซ้ำ */
+    position: relative;
+}
+
+/* เพิ่มฟิลม์สีดำโปร่งแสงทับรูปเล็กน้อย เพื่อให้ตัวหนังสือและเกมเด่นขึ้น */
+.main-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.05);
+    /* ความมืด 65% ปรับเพิ่มลดได้ตามชอบ */
+    z-index: 1;
+    /* ให้อยู่ใต้คอนเทนต์แต่ทับรูปภาพ */
+}
+
+/* บังคับให้เนื้อหาข้างในทั้งหมดอยู่เหนือชั้นฟิลม์ดำ */
+.main-content>* {
+    position: relative;
+    z-index: 2;
+}
+
+/* ทำกล่องรองพื้นหลังเฉพาะส่วน Free Online Tutoring และโซนด้านล่างทั้งหมด */
+.youtube-section,
+.dashboard-bottom-grid,
+.team-slider-section,
+.special-thanks,
+.footer-credit {
+    background-color: rgba(10, 15, 25, 0.05);
+    /* ใส่พื้นหลังสีดำอมน้ำเงินเข้มความทึบ 85% รองไว้ */
+    backdrop-filter: blur(1px);
+    /* เบลอภาพพื้นหลังด้านหลังเล็กน้อยเพื่อให้ดูเนียนตา */
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+/* กางค้างไว้เฉพาะเมนู Society Chat */
+#menu-chat.submenu.active {
+    display: block !important;
+    max-height: none !important;
+    padding: 10px 0;
+    /* ปรับแต่งระยะห่างตามชอบ */
+}
+
+/* ป้องกันไม่ให้ปุ่ม Society Chat ถูกกดปิด (ถ้าไม่ต้องการให้กดปิดได้) */
+.nav-group:has(#menu-chat) .nav-btn {
+    pointer-events: none;
+    /* ปิดการคลิกที่ปุ่ม */
+    background-color: var(--accent-lime);
+    /* หรือสีที่คุณใช้สำหรับสถานะ active */
+}
+
+/* 📢 Announcement Section Styling */
+.announcement-section {
+    margin: 40px 0 20px 0;
+    padding: 25px;
+    background: rgba(15, 23, 42, 0.75);
+    border: 2px solid rgba(196, 255, 0, 0.3);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.announcement-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.announcement-title {
+    font-family: 'Kanit', sans-serif;
+    font-size: 1.4rem;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.announcement-badge {
+    background: var(--accent-lime, #c4ff00);
+    color: #000000;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.announcement-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: scroll;
+    /* สั่งให้เกิด Scrollbar แนวตั้งเมื่อเนื้อหาเกิน */
+    max-height: 160px;
+    /* กำหนดความสูงพื้นที่แสดงการ์ด */
+    padding-right: 8px;
+}
+
+/* ตกแต่ง Scrollbar ให้เข้ากับธีมเว็บไซต์ */
+.announcement-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.announcement-container::-webkit-scrollbar-track {
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 4px;
+}
+
+.announcement-container::-webkit-scrollbar-thumb {
+    background: var(--accent-lime, #c4ff00);
+    border-radius: 4px;
+}
+
+.announcement-card {
+    background: rgba(30, 41, 59, 0.6);
+    border-left: 4px solid var(--accent-lime, #c4ff00);
+    padding: 15px 20px;
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+}
+
+.announcement-card:hover {
+    transform: translateX(4px);
+    background: rgba(30, 41, 59, 0.9);
+}
+
+.announcement-date {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 4px;
+}
+
+.announcement-heading {
+    font-size: 1.05rem;
+    color: #f8fafc;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.announcement-desc {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    line-height: 1.5;
+}
+
+.announcement-item p,
+.announcement-item a {
+    word-break: break-all;
+    overflow-wrap: break-word;
+}
+
+/* กล่องควบคุมการเลื่อนแนวแนวนอน (Wrapper) */
+.game-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    /* เปิดให้ Scroll แนวนอน */
+    overflow-y: hidden;
+    padding: 15px 5px;
+    scroll-behavior: smooth;
+}
+
+/* บังคับตัวจัดวางการ์ด (.cards-grid) ให้เรียงต่อกันเป็นแนวยาวไม่ตกบรรทัด */
+.game-scroll-wrapper .cards-grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 20px;
+    width: max-content;
+    /* ขยายความกว้างตามจำนวนการ์ด */
+}
+
+/* ล็อคขนาดความกว้างของการ์ดแต่ละใบไม่ให้โดนบีบย่อ */
+.game-scroll-wrapper .course-card {
+    flex: 0 0 280px;
+}
+
+/* 1. ซ่อน Scrollbar ของ game-scroll-wrapper */
+.game-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px 0;
+    /* ซ่อน Scrollbar สำหรับ Browser ต่างๆ */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+.game-scroll-wrapper::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
+
+/* 2. สไตล์ปุ่มกดเลื่อน ซ้าย-ขวา */
+.scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(10, 15, 30, 0.85);
+    color: var(--accent-cyan, #00f3ff);
+    border: 2px solid var(--accent-cyan, #00f3ff);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.scroll-btn:hover {
+    background: var(--accent-cyan, #00f3ff);
+    color: #000;
+    box-shadow: 0 0 15px var(--accent-cyan, #00f3ff);
+    scale: 1.1;
+}
+
+/* ตำแหน่งปุ่มซ้ายและขวา */
+.prev-btn {
+    left: -10px;
+}
+
+.next-btn {
+    right: -10px;
+}
+
+/* รูปแบบของการ์ดแต่ละใบ */
+.game-card {
+    flex: 0 0 220px;
+    /* กำหนดความกว้างคงที่ของการ์ดแต่ละใบ */
+    background: var(--card-bg);
+    border: 2px solid var(--border-light);
+    border-radius: 14px;
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-cyan);
+}
+
+.game-thumb {
+    font-size: 3rem;
+    padding: 20px 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมสแกน Keyword ฟิสิกส์ ม.2 (สุ่มไม่จำกัดข้อ)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
+        * { box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
+        body { background: #f0f4f8; padding: 20px; margin: 0; display: flex; justify-content: center; }
+        .card { background: white; padding: 24px; border-radius: 16px; max-width: 650px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: #1e3a8a; margin-top: 0; text-align: center; }
+        .problem-box { background: #e0f2fe; border-left: 5px solid #0284c7; padding: 15px; border-radius: 8px; font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; }
+        .symbol-bank { display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap; background: #f8fafc; padding: 15px; border-radius: 10px; border: 2px dashed #cbd5e1; }
+        .draggable { background: #3b82f6; color: white; padding: 10px 18px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; cursor: grab; user-select: none; transition: transform 0.1s; }
+        .draggable:active { cursor: grabbing; transform: scale(1.05); }
+        .question-item { background: #ffffff; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .dropzone { border: 2px dashed #94a3b8; width: 75px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; background: #fafafa; transition: 0.2s; }
+        .dropzone.filled { border-style: solid; border-color: #3b82f6; background: #e0f2fe; color: #1e3a8a; }
+        .explanation { width: 100%; font-size: 0.95rem; color: #991b1b; background: #fee2e2; padding: 10px 14px; border-radius: 6px; margin-top: 8px; display: none; line-height: 1.5; border-left: 4px solid #ef4444; }
+        .btn { display: block; width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn:hover { background: #059669; }
+        .feedback { text-align: center; font-size: 1.1rem; font-weight: bold; margin-top: 15px; min-height: 25px; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>🎮 เกมแกะ Keyword (สุ่มโจทย์ไร้ขีดจำกัด)</h2>
+    <div class="problem-box" id="problem">กำลังสร้างโจทย์...</div>
+    
+    <div style="text-align:center; font-weight:bold; margin-bottom:8px; color:#475569;">ลากสัญลักษณ์ไปวางในช่องคำตอบ:</div>
+    <div class="symbol-bank" id="symbolBank"></div>
+
+    <div id="questionsContainer"></div>
+
+    <button class="btn" onclick="checkAnswers()" id="actionBtn">ตรวจคำตอบ</button>
+    <div class="feedback" id="feedback"></div>
+</div>
+
+<script>
+// ฟังก์ชันสุ่มตัวเลขตามช่วงที่กำหนด
+function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// ระบบสร้างโจทย์แบบไร้ขีดจำกัด (Generative Problem Generator)
+function generateRandomProblem() {
+    const problemTypes = [
+        // รูปแบบ 1: การหางานและกำลัง
+        () => {
+            const F = rand(10, 200);
+            const s = rand(2, 50);
+            const t = rand(2, 20);
+            return {
+                text: `คนงานออกแรง <b>${F} นิวตัน</b> เข็นเข็นรถขยับไปได้ระยะทาง <b>${s} เมตร</b> ในเวลา <b>${t} วินาที</b>`,
+                keywords: [
+                    { text: `ออกแรง ${F} นิวตัน`, ans: "F", exp: "💡 แรง (Force) คือตัว F (หน่วยนิวตัน N)" },
+                    { text: `ระยะทาง ${s} เมตร`, ans: "s", exp: "💡 ระยะทาง (Space/Displacement) คือตัว s (หน่วยเมตร m)" },
+                    { text: `เวลา ${t} วินาที`, ans: "t", exp: "💡 เวลา (Time) คือตัว t (หน่วยวินาที s)" }
+                ],
+                symbols: ["F", "s", "t", "W", "m", "v"]
+            };
+        },
+        // รูปแบบ 2: พลังงานศักย์โน้มถ่วง
+        () => {
+            const m = rand(2, 50);
+            const h = rand(1, 15);
+            const t = rand(3, 15);
+            return {
+                text: `ปั้นจั่นยกวัตถุมวล <b>${m} กิโลกรัม</b> ขึ้นไปที่ความสูง <b>${h} เมตร</b> ใช้เวลาในการยก <b>${t} วินาที</b>`,
+                keywords: [
+                    { text: `มวล ${m} กิโลกรัม`, ans: "m", exp: "💡 มวล (Mass) คือตัว m (หน่วยกิโลกรัม kg)" },
+                    { text: `ความสูง ${h} เมตร`, ans: "h", exp: "💡 ความสูง (Height) คือตัว h (หน่วยเมตร m)" },
+                    { text: `เวลา ${t} วินาที`, ans: "t", exp: "💡 เวลา (Time) คือตัว t (หน่วยวินาที s)" }
+                ],
+                symbols: ["m", "h", "t", "F", "P", "v"]
+            };
+        },
+        // รูปแบบ 3: การเคลื่อนที่และความเร็ว
+        () => {
+            const u = rand(0, 10);
+            const v = rand(20, 80);
+            const t = rand(2, 10);
+            return {
+                text: `รถแข่งเริ่มเคลื่อนที่จากความเร็วเริ่มต้น <b>${u} เมตร/วินาที</b> เร่งเครื่องจนมีความเร็วปลาย <b>${v} เมตร/วินาที</b> ภายในเวลา <b>${t} วินาที</b>`,
+                keywords: [
+                    { text: `ความเร็วเริ่มต้น ${u} เมตร/วินาที`, ans: "u", exp: "💡 ความเร็วต้น (Initial Velocity) คือตัว u (หน่วย m/s)" },
+                    { text: `ความเร็วปลาย ${v} เมตร/วินาที`, ans: "v", exp: "💡 ความเร็วปลาย (Final Velocity) คือตัว v (หน่วย m/s)" },
+                    { text: `เวลา ${t} วินาที`, ans: "t", exp: "💡 เวลา (Time) คือตัว t (หน่วยวินาที s)" }
+                ],
+                symbols: ["u", "v", "t", "a", "s", "F"]
+            };
+        },
+        // รูปแบบ 4: งานและกำลังไฟฟ้า/เครื่องกล
+        () => {
+            const W = rand(100, 2000);
+            const P = rand(50, 500);
+            return {
+                text: `มอเตอร์เครื่องหนึ่งทำงานได้ <b>${W} จูล</b> โดยปล่อยกำลังออกมา <b>${P} วัตต์</b>`,
+                keywords: [
+                    { text: `ทำงานได้ ${W} จูล`, ans: "W", exp: "💡 งาน (Work) คือตัว W (หน่วยจูล J)" },
+                    { text: `กำลัง ${P} วัตต์`, ans: "P", exp: "💡 กำลัง (Power) คือตัว P (หน่วยวัตต์ W)" }
+                ],
+                symbols: ["W", "P", "t", "F", "s", "m"]
+            };
+        }
+    ];
+
+    // สุ่มเลือกชนิดของโจทย์ 1 ข้อจากประเภททั้งหมด
+    const randomIndex = rand(0, problemTypes.length - 1);
+    return problemTypes[randomIndex]();
+}
+
+let currentProblem = null;
+let userAnswers = {};
+
+function loadRandomProblem() {
+    userAnswers = {};
+    document.getElementById('feedback').innerText = '';
+    const btn = document.getElementById('actionBtn');
+    btn.innerText = 'ตรวจคำตอบ';
+    btn.onclick = checkAnswers;
+
+    // สร้างโจทย์ใหม่สดๆ
+    currentProblem = generateRandomProblem();
+    document.getElementById('problem').innerHTML = currentProblem.text;
+
+    const bank = document.getElementById('symbolBank');
+    bank.innerHTML = '';
+    currentProblem.symbols.forEach(sym => {
+        const el = document.createElement('div');
+        el.className = 'draggable';
+        el.draggable = true;
+        el.innerText = sym;
+        el.ondragstart = (e) => e.dataTransfer.setData('text', sym);
+        bank.appendChild(el);
+    });
+
+    const qContainer = document.getElementById('questionsContainer');
+    qContainer.innerHTML = '';
+    currentProblem.keywords.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'question-item';
+        div.innerHTML = `
+            <div>Keyword: "<b>${item.text}</b>"</div>
+            <div class="dropzone" id="drop-${index}" 
+                 ondragover="event.preventDefault()" 
+                 ondrop="handleDrop(event, ${index})">วางที่นี่</div>
+            <div class="explanation" id="exp-${index}"></div>
+        `;
+        qContainer.appendChild(div);
+    });
+}
+
+function handleDrop(e, index) {
+    e.preventDefault();
+    const sym = e.dataTransfer.getData('text');
+    userAnswers[index] = sym;
+    const zone = document.getElementById(`drop-${index}`);
+    zone.innerText = sym;
+    zone.classList.add('filled');
+}
+
+function checkAnswers() {
+    let correct = 0;
+    currentProblem.keywords.forEach((item, index) => {
+        const zone = document.getElementById(`drop-${index}`);
+        const expBox = document.getElementById(`exp-${index}`);
+        
+        if (userAnswers[index] === item.ans) {
+            correct++;
+            zone.style.borderColor = '#10b981';
+            zone.style.background = '#d1fae5';
+            expBox.style.display = 'none';
+        } else {
+            zone.style.borderColor = '#ef4444';
+            zone.style.background = '#fee2e2';
+            expBox.innerHTML = `❌ <b>คำตอบที่ถูกคือ [ ${item.ans} ]</b><br>${item.exp}`;
+            expBox.style.display = 'block';
+        }
+    });
+
+    const fb = document.getElementById('feedback');
+    if (correct === currentProblem.keywords.length) {
+        fb.style.color = '#10b981';
+        fb.innerText = `🎉 ถูกต้องทั้งหมด! (${correct}/${currentProblem.keywords.length})`;
+    } else {
+        fb.style.color = '#ef4444';
+        fb.innerText = `❌ ได้ ${correct}/${currentProblem.keywords.length} คะแนน ดูเฉลยด้านล่างได้เลย!`;
+    }
+
+    const btn = document.getElementById('actionBtn');
+    btn.innerText = 'สุ่มโจทย์ข้อถัดไป 🔄';
+    btn.onclick = loadRandomProblem;
+}
+
+// เริ่มเกม
+loadRandomProblem();
+</script>
+</body>
+</html>

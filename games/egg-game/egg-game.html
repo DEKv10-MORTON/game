@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Egg Catcher - Modern Edition</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0d0f18;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .console-box {
+      background: rgba(30, 32, 48, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      width: 95%;
+      max-width: 380px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+    }
+    .console-title {
+      font-size: 15px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.5px;
+    }
+    .mode-btn {
+      font-size: 11px;
+      font-weight: bold;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      padding: 3px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .mode-btn:hover {
+      background: rgba(56, 189, 248, 0.3);
+    }
+    .screen-container {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #1e1b4b;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-move {
+      flex: 1;
+      background: linear-gradient(135deg, #4f46e5, #3b82f6);
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+      user-select: none;
+    }
+    .btn-move:active {
+      transform: translateY(1px);
+    }
+    .hint {
+      font-size: 10px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+<div class="console-box">
+  <div class="console-header">
+    <div class="console-title">🥚 EGG CATCHER</div>
+    <button class="mode-btn" id="modeBtn" onclick="toggleMode()">MODE: ARCADE</button>
+  </div>
+
+  <div class="screen-container">
+    <canvas id="gameCanvas" width="360" height="380"></canvas>
+  </div>
+
+  <div class="controls">
+    <button class="btn-move" onclick="moveBasket(-1)">◄ ซ้าย [A]</button>
+    <button class="btn-move" onclick="moveBasket(1)">ขวา [D] ►</button>
+  </div>
+
+  <div class="hint">ใช้ปุ่มลูกศร ◄ ► หรือ A / D ในการควบคุม</div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// โหมดเกม (EASY, ARCADE, HARD)
+const modes = ['EASY', 'ARCADE', 'HARD'];
+let currentModeIdx = 1;
+
+const modeSettings = {
+  EASY: { baseSpeed: 1.5, spawnRate: 110, name: 'EASY' },
+  ARCADE: { baseSpeed: 2.2, spawnRate: 80, name: 'ARCADE' },
+  HARD: { baseSpeed: 3.2, spawnRate: 50, name: 'HARD' }
+};
+
+let score = 0;
+let misses = 0;
+let maxMisses = 3;
+let gameOver = false;
+let isPausedMiss = false; // สถานะหยุดเมื่อรับไข่ไม่ได้
+
+const basket = {
+  width: 60,
+  height: 28,
+  x: 150,
+  y: 335,
+  speed: 7,
+  dx: 0
+};
+
+const chickens = [
+  { x: 50, y: 55 },
+  { x: 135, y: 55 },
+  { x: 225, y: 55 },
+  { x: 310, y: 55 }
+];
+
+let eggs = [];
+let eggSpawnTimer = 0;
+
+function toggleMode() {
+  currentModeIdx = (currentModeIdx + 1) % modes.length;
+  const modeKey = modes[currentModeIdx];
+  document.getElementById('modeBtn').innerText = `MODE: ${modeKey}`;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') basket.dx = -basket.speed;
+  if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') basket.dx = basket.speed;
+  
+  if (e.code === 'Space') {
+    if (gameOver) restartGame();
+    else if (isPausedMiss) resumeAfterMiss();
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  if (['ArrowLeft', 'ArrowRight', 'a', 'd', 'A', 'D'].includes(e.key)) basket.dx = 0;
+});
+
+canvas.addEventListener('click', () => {
+  if (isPausedMiss) resumeAfterMiss();
+  if (gameOver) restartGame();
+});
+
+function moveBasket(dir) {
+  basket.x += dir * 40;
+  if (basket.x < 5) basket.x = 5;
+  if (basket.x + basket.width > canvas.width - 5) basket.x = canvas.width - 5 - basket.width;
+}
+
+function resumeAfterMiss() {
+  isPausedMiss = false;
+  eggs = []; // ล้างไข่ที่ค้างอยู่บนจอออกเพื่อให้เริ่มรอบใหม่ได้แฟร์
+}
+
+function spawnEgg() {
+  const chk = chickens[Math.floor(Math.random() * chickens.length)];
+  const isGolden = Math.random() < 0.2;
+  const currentSetting = modeSettings[modes[currentModeIdx]];
+  
+  // สุ่มความเร็ว (มีทั้งช้าและเร็วผสมกัน)
+  const speedVariation = (Math.random() * 1.5) - 0.5;
+  const finalSpeed = Math.max(1.2, currentSetting.baseSpeed + speedVariation);
+
+  eggs.push({
+    x: chk.x,
+    y: chk.y + 12,
+    speed: finalSpeed,
+    isGolden: isGolden
+  });
+}
+
+function update() {
+  if (gameOver || isPausedMiss) return;
+
+  basket.x += basket.dx;
+  if (basket.x < 5) basket.x = 5;
+  if (basket.x + basket.width > canvas.width - 5) basket.x = canvas.width - 5 - basket.width;
+
+  const currentSetting = modeSettings[modes[currentModeIdx]];
+  eggSpawnTimer++;
+  if (eggSpawnTimer > currentSetting.spawnRate) {
+    spawnEgg();
+    eggSpawnTimer = 0;
+  }
+
+  for (let i = eggs.length - 1; i >= 0; i--) {
+    let e = eggs[i];
+    e.y += e.speed;
+
+    // ตรวจสอบการรับไข่
+    if (
+      e.y + 10 >= basket.y &&
+      e.y <= basket.y + basket.height &&
+      e.x >= basket.x - 4 &&
+      e.x <= basket.x + basket.width + 4
+    ) {
+      score += e.isGolden ? 3 : 1;
+      eggs.splice(i, 1);
+      continue;
+    }
+
+    // ไข่ตกพื้น (รับไม่ได้)
+    if (e.y > canvas.height - 18) {
+      misses++;
+      eggs.splice(i, 1);
+      
+      if (misses >= maxMisses) {
+        gameOver = true;
+      } else {
+        isPausedMiss = true; // หยุดเกมชั่วคราว
+      }
+      break;
+    }
+  }
+}
+
+// ---------------- Graphic Drawing ----------------
+
+function drawBackground() {
+  let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, '#0f172a');
+  grad.addColorStop(1, '#1e1b4b');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(15, 65, 330, 6);
+}
+
+function drawChicken(x, y) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  ctx.fillStyle = '#f8fafc';
+  ctx.beginPath();
+  ctx.arc(0, 0, 13, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.arc(-2, -15, 3, 0, Math.PI * 2);
+  ctx.arc(2, -16, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.moveTo(0, -2); ctx.lineTo(7, 1); ctx.lineTo(0, 4);
+  ctx.fill();
+
+  ctx.fillStyle = '#0f172a';
+  ctx.beginPath();
+  ctx.arc(-3, -3, 1.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawBasket() {
+  ctx.save();
+  ctx.fillStyle = '#d97706';
+  ctx.beginPath();
+  ctx.roundRect(basket.x, basket.y, basket.width, basket.height, [3, 3, 12, 12]);
+  ctx.fill();
+
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(basket.x - 2, basket.y, basket.width + 4, 5);
+  ctx.restore();
+}
+
+function drawEggs() {
+  eggs.forEach(e => {
+    ctx.save();
+    ctx.fillStyle = e.isGolden ? '#fbbf24' : '#fef3c7';
+    ctx.shadowColor = e.isGolden ? 'rgba(251, 191, 36, 0.6)' : 'transparent';
+    ctx.shadowBlur = e.isGolden ? 10 : 0;
+
+    ctx.beginPath();
+    ctx.ellipse(e.x, e.y, 7, 9.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+function drawHUD() {
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 15px "Segoe UI", sans-serif';
+  ctx.fillText(`SCORE: ${score}`, 15, 30);
+
+  // หัวใจ (แสดงจำนวนชีวิตที่เหลือ)
+  for (let i = 0; i < maxMisses; i++) {
+    ctx.fillStyle = i < (maxMisses - misses) ? '#f43f5e' : '#475569';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('❤️', 270 + (i * 20), 30);
+  }
+}
+
+function render() {
+  drawBackground();
+  chickens.forEach(c => drawChicken(c.x, c.y));
+  drawEggs();
+  drawBasket();
+  drawHUD();
+
+  // ป๊อบอัพเมื่อรับไข่พลาด (Pause)
+  if (isPausedMiss && !gameOver) {
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = 'bold 22px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('EGG DROPPED! 🍳', canvas.width / 2, 170);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = '13px "Segoe UI", sans-serif';
+    ctx.fillText(`เสียหัวใจไป 1 ดวง (เหลือ ${maxMisses - misses} ดวง)`, canvas.width / 2, 205);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 13px "Segoe UI", sans-serif';
+    ctx.fillText('กด SPACEBAR หรือ คลิกเพื่อเล่นต่อ', canvas.width / 2, 240);
+    ctx.textAlign = 'start';
+  }
+
+  // ป๊อบอัพ Game Over
+  if (gameOver) {
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 24px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', canvas.width / 2, 160);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 18px "Segoe UI", sans-serif';
+    ctx.fillText(`Final Score: ${score}`, canvas.width / 2, 195);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '13px "Segoe UI", sans-serif';
+    ctx.fillText('กด SPACEBAR หรือ คลิกเพื่อเริ่มใหม่', canvas.width / 2, 235);
+    ctx.textAlign = 'start';
+  }
+}
+
+function restartGame() {
+  score = 0;
+  misses = 0;
+  eggs = [];
+  gameOver = false;
+  isPausedMiss = false;
+}
+
+function gameLoop() {
+  update();
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+</body>
+</html>

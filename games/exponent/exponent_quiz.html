@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEK MORTON STUDIO - เกมเช็กสติ! เลขยกกำลัง</title>
+    <style>
+        body {
+            font-family: 'Tahoma', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* สไตล์โลโก้ MORTON STUDIO */
+        .brand-logo {
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #00d2d3;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            text-shadow: 0 0 8px rgba(0, 210, 211, 0.4);
+        }
+
+        .card {
+            background: #1e1e1e;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2d2d2d;
+        }
+
+        .badge {
+            background-color: #ff5252;
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            margin: 5px 0 10px 0;
+            color: #ffffff;
+        }
+
+        .problem-box {
+            background-color: #2a2a2a;
+            border: 2px dashed #444;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .problem {
+            font-size: 36px;
+            font-weight: bold;
+            color: #00d2d3;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-opt {
+            background-color: #2c2c2c;
+            border: 2px solid #00d2d3;
+            color: #00d2d3;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-opt:hover {
+            background-color: #00d2d3;
+            color: #121212;
+            box-shadow: 0 0 12px rgba(0, 210, 211, 0.5);
+        }
+
+        .btn-opt:disabled {
+            border-color: #444;
+            color: #666;
+            cursor: not-allowed;
+            background-color: #1a1a1a;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            line-height: 1.6;
+            display: none;
+            font-size: 16px;
+        }
+
+        .correct {
+            background-color: #1b382b;
+            color: #75b798;
+            border-left: 5px solid #28a745;
+        }
+
+        .wrong {
+            background-color: #3d2024;
+            color: #ea868f;
+            border-left: 5px solid #dc3545;
+        }
+
+        .btn-next {
+            background-color: #10ac84;
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            display: none;
+            width: 100%;
+        }
+
+        .btn-next:hover {
+            background-color: #1dd1a1;
+        }
+
+        sup {
+            font-size: 0.7em;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <div class="brand-logo">⚡ DEK MORTON STUDIO</div>
+        <div class="badge" id="category-badge">กับดักเรื่อง: เครื่องหมายลบ</div>
+        <h2>เกมเช็กสติ! เลขยกกำลัง</h2>
+        <p style="color: #aaa; font-size: 14px;">ระวังโดนหลอก! เลือกคำตอบที่ถูกต้องที่สุด</p>
+
+        <div class="problem-box">
+            <div class="problem" id="problem-text">-3² = ?</div>
+        </div>
+
+        <div class="options-grid" id="options-container"></div>
+
+        <div class="feedback" id="feedback-box"></div>
+        <button class="btn-next" id="btn-next" onclick="generateProblem()">ข้อถัดไป ➔</button>
+    </div>
+
+    <script>
+        let currentProblem = {};
+
+        const problemGenerators = [
+            // แบบที่ 1: -a^n
+            function genType1() {
+                const base = Math.floor(Math.random() * 4) + 2;
+                const exp = 2;
+                const correctAns = -(Math.pow(base, exp));
+                const wrongAns = Math.pow(base, exp);
+                return {
+                    category: "เครื่องหมาย (-a)ⁿ กับ -aⁿ",
+                    question: `-${base}<sup>${exp}</sup>`,
+                    options: [correctAns.toString(), wrongAns.toString()],
+                    correct: correctAns.toString(),
+                    explain: `<b>ระวัง!</b> ข้อนี้<b>ไม่มีวงเล็บ</b> เครื่องหมายลบไม่ได้ถูกกำลัง 2 ด้วย<br>👉 คิดเป็น -(${base} × ${base}) = <b>${correctAns}</b> (ไม่ใช่ +${wrongAns})`
+                };
+            },
+            // แบบที่ 2: (-a)^n
+            function genType2() {
+                const base = Math.floor(Math.random() * 3) + 2;
+                const isEven = Math.random() < 0.5;
+                const exp = isEven ? 2 : 3;
+                const correctAns = Math.pow(-base, exp);
+                const wrongAns = -correctAns;
+                return {
+                    category: "เครื่องหมาย (-a)ⁿ กับ -aⁿ",
+                    question: `(-${base})<sup>${exp}</sup>`,
+                    options: [correctAns.toString(), wrongAns.toString()],
+                    correct: correctAns.toString(),
+                    explain: `ข้อนี้<b>มีวงเล็บ</b> อุ้มเครื่องหมายลบไปด้วย<br>👉 ลบกำลัง${isEven ? 'คู่ ได้ค่าเป็นบวก' : 'คี่ ได้ค่าเป็นลบ'}<br>👉 คิดเป็น (-${base}) ${exp === 2 ? '× (-' + base + ')' : '× (-' + base + ') × (-' + base + ')'} = <b>${correctAns}</b>`
+                };
+            },
+            // แบบที่ 3: x^a * x^b vs x^a + x^b
+            function genType3() {
+                const exp1 = Math.floor(Math.random() * 3) + 2;
+                const exp2 = Math.floor(Math.random() * 3) + 2;
+                const isMultiply = Math.random() < 0.5;
+
+                if (isMultiply) {
+                    return {
+                        category: "การคูณ vs การบวก",
+                        question: `x<sup>${exp1}</sup> · x<sup>${exp2}</sup>`,
+                        options: [`x<sup>${exp1 + exp2}</sup>`, `x<sup>${exp1 * exp2}</sup>`],
+                        correct: `x<sup>${exp1 + exp2}</sup>`,
+                        explain: `ฐานเหมือนกันคูณกัน ให้<b>นำเลขชี้กำลังมาบวกกัน</b><br>👉 x<sup>${exp1}+${exp2}</sup> = <b>x<sup>${exp1 + exp2}</sup></b>`
+                    };
+                } else {
+                    return {
+                        category: "การคูณ vs การบวก",
+                        question: `x<sup>${exp1}</sup> + x<sup>${exp2}</sup>`,
+                        options: [`ยุบรวมไม่ได้`, `x<sup>${exp1 + exp2}</sup>`],
+                        correct: `ยุบรวมไม่ได้`,
+                        explain: `<b>อย่าเผลอ!</b> การบวกเลขยกกำลังที่เลขชี้กำลังไม่เท่ากัน <b>ห้ามเอาเลขชี้กำลังมาบวกกันเด็ดขาด!</b>`
+                    };
+                }
+            },
+            // แบบที่ 4: กำลังติดลบ
+            function genType4() {
+                const exp = Math.floor(Math.random() * 3) + 2;
+                return {
+                    category: "กำลังติดลบ x⁻ⁿ",
+                    question: `x<sup>-${exp}</sup> เท่ากับข้อใด?`,
+                    options: [`1 / x<sup>${exp}</sup>`, `-x<sup>${exp}</sup>`],
+                    correct: `1 / x<sup>${exp}</sup>`,
+                    explain: `<b>กำลังติดลบ ไม่ได้ทำให้ค่าติดลบ!</b><br>👉 แค่ย้ายชั้นลงไปเป็นตัวส่วนด้านล่าง นั่นคือ <b>1 / x<sup>${exp}</sup></b>`
+                };
+            },
+            // แบบที่ 5: กำลัง 0
+            function genType5() {
+                const base = Math.floor(Math.random() * 50) + 2;
+                const isNegative = Math.random() < 0.5;
+                const expr = isNegative ? `(-${base})<sup>0</sup>` : `-${base}<sup>0</sup>`;
+                const correctAns = isNegative ? "1" : "-1";
+                const wrongAns = isNegative ? "-1" : "1";
+
+                return {
+                    category: "กำลังศูนย์ x⁰",
+                    question: `${expr}`,
+                    options: [correctAns, wrongAns],
+                    correct: correctAns,
+                    explain: isNegative ?
+                        `อะไรก็ตาม (ยกเว้น 0) โดนวงเล็บยกกำลัง 0 จะได้ <b>1</b> เสมอ` :
+                        `<b>ระวัง!</b> ลบอยู่นอกกำลัง 0 ดังนั้น -(${base}<sup>0</sup>) = -(1) = <b>-1</b>`
+                };
+            }
+        ];
+
+        function generateProblem() {
+            document.getElementById('feedback-box').style.display = 'none';
+            document.getElementById('btn-next').style.display = 'none';
+
+            const randomType = Math.floor(Math.random() * problemGenerators.length);
+            currentProblem = problemGenerators[randomType]();
+
+            document.getElementById('category-badge').innerText = `กับดักเรื่อง: ${currentProblem.category}`;
+            document.getElementById('problem-text').innerHTML = currentProblem.question;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            let shuffledOptions = [...currentProblem.options];
+            if (Math.random() < 0.5) shuffledOptions.reverse();
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-opt';
+                btn.innerHTML = opt;
+                btn.onclick = () => checkAnswer(opt);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected) {
+            const feedbackBox = document.getElementById('feedback-box');
+            const isCorrect = selected === currentProblem.correct;
+
+            const buttons = document.querySelectorAll('.btn-opt');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                feedbackBox.className = 'feedback correct';
+                feedbackBox.innerHTML = `🎉 <b>ถูกต้องแล้วครับ! สติมาปัญญาเกิด!</b><br>${currentProblem.explain}`;
+            } else {
+                feedbackBox.className = 'feedback wrong';
+                feedbackBox.innerHTML = `❌ <b>โดนหลอกเข้าแล้ว!</b><br>${currentProblem.explain}`;
+            }
+
+            feedbackBox.style.display = 'block';
+            document.getElementById('btn-next').style.display = 'block';
+        }
+
+        generateProblem();
+    </script>
+
+</body>
+
+</html>

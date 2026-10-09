@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Hunter - DEK MORTON STUDIO</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&family=Orbitron:wght@700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --card-bg: #151c2e;
+            --accent: #00f3ff;
+            --accent-glow: rgba(0, 243, 255, 0.3);
+            --red: #ff4757;
+            --green: #2ed573;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Kanit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        /* กล่องเกมหลัก ปรับตามสไตล์ speed-math ไม่ล้นหน้าจอแน่นอน */
+        .game-card {
+            background: var(--card-bg);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 20px;
+            width: 100%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 25px var(--accent-glow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* สไตล์ Scrollbar ในตัวการ์ด */
+        .game-card::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .game-card::-webkit-scrollbar-track {
+            background: #0f172a;
+            border-radius: 4px;
+        }
+
+        .game-card::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            color: var(--accent);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .header p {
+            font-size: 11px;
+            color: #64748b;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* แดชบอร์ดคะแนน */
+        .dashboard {
+            display: flex;
+            justify-content: space-around;
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .dash-label {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .dash-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .score-val {
+            color: var(--accent);
+        }
+
+        .high-val {
+            color: #ffb703;
+        }
+
+        /* หน้าเมนูเลือกโหมด */
+        .mode-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            background: #0f172a;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            padding: 12px 15px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--accent);
+            background: rgba(0, 243, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .mode-btn h3 {
+            color: var(--accent);
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .mode-btn p {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        /* พื้นที่เล่นเกม (Grid Hunter / Speed Run) */
+        .game-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .grid-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .num-tile {
+            aspect-ratio: 1 / 1;
+            background: #0f172a;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .num-tile:active {
+            transform: scale(0.92);
+        }
+
+        .num-tile.correct {
+            background: var(--green) !important;
+            color: #000;
+            border-color: var(--green);
+        }
+
+        .num-tile.wrong {
+            background: var(--red) !important;
+            color: #fff;
+            border-color: var(--red);
+        }
+
+        /* โหมด Speed Run (ตัวเลขร่วง) */
+        .speed-box {
+            width: 100%;
+            height: 220px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .falling-num {
+            position: absolute;
+            background: var(--card-bg);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-back {
+            margin-top: 10px;
+            border-color: #64748b;
+            color: #64748b;
+        }
+
+        .btn-back:hover {
+            background: #64748b;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="game-card">
+        <div class="header">
+            <h1>PRIME HUNTER</h1>
+            <p>DEK MORTON STUDIO</p>
+        </div>
+
+        <!-- แดชบอร์ดคะแนน -->
+        <div class="dashboard">
+            <div>
+                <div class="dash-label">คะแนน</div>
+                <div class="dash-val score-val" id="score">0</div>
+            </div>
+            <div>
+                <div class="dash-label">สถิติสูงสุด</div>
+                <div class="dash-val high-val" id="high-score">0</div>
+            </div>
+            <div>
+                <div class="dash-label">สถานะ</div>
+                <div class="dash-val" id="status" style="font-size: 14px; color: var(--accent);">READY</div>
+            </div>
+        </div>
+
+        <!-- เมนูหลักเลือกโหมด -->
+        <div id="main-menu" class="mode-list">
+            <div class="mode-btn" onclick="startGridMode()">
+                <h3>🎯 1. Grid Hunter (เคลียร์ตาราง)</h3>
+                <p>ค้นหาและกดเฉพาะจำนวนเฉพาะบนตารางให้หมดเพื่อผ่านด่าน</p>
+            </div>
+            <div class="mode-btn" onclick="startSpeedMode()">
+                <h3>⚡ 2. Speed Run (วัดความเร็ว)</h3>
+                <p>ตัวเลขลอยลงมา! กดไล่ล่าเฉพาะเลข Prime ก่อนตกถึงพื้น</p>
+            </div>
+        </div>
+
+        <!-- พื้นที่เล่นเกม Grid Hunter -->
+        <div id="grid-game" class="game-area">
+            <div class="grid-board" id="grid-board"></div>
+            <button class="btn btn-back" onclick="showMenu()">◄ กลับเมนูหลัก</button>
+        </div>
+
+        <!-- พื้นที่เล่นเกม Speed Run -->
+        <div id="speed-game" class="game-area">
+            <div class="speed-box" id="speed-box"></div>
+            <button class="btn btn-back" onclick="showMenu()">◄ กลับเมนูหลัก</button>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let highScore = localStorage.getItem('prime_hunter_highscore') || 0;
+        let currentMode = '';
+        let speedInterval = null;
+
+        document.getElementById('high-score').textContent = highScore;
+
+        // เช็คจำนวนเฉพาะ (Prime Number)
+        function isPrime(num) {
+            if (num <= 1) return false;
+            if (num <= 3) return true;
+            if (num % 2 === 0 || num % 3 === 0) return false;
+            for (let i = 5; i * i <= num; i += 6) {
+                if (num % i === 0 || num % (i + 2) === 0) return false;
+            }
+            return true;
+        }
+
+        // เสียง Synth เอฟเฟกต์
+        function playSound(type) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'hit') {
+                    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.1);
+                } else if (type === 'wrong') {
+                    osc.frequency.setValueAtTime(150, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.2);
+                }
+            } catch (e) { }
+        }
+
+        function showMenu() {
+            clearInterval(speedInterval);
+            document.getElementById('main-menu').style.display = 'flex';
+            document.getElementById('grid-game').style.display = 'none';
+            document.getElementById('speed-game').style.display = 'none';
+            document.getElementById('status').textContent = 'READY';
+            document.getElementById('speed-box').innerHTML = '';
+        }
+
+        function updateScore(pts) {
+            score += pts;
+            if (score < 0) score = 0;
+            document.getElementById('score').textContent = score;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('prime_hunter_highscore', highScore);
+                document.getElementById('high-score').textContent = highScore;
+            }
+        }
+
+        /* --- โหมด 1: GRID HUNTER --- */
+        function startGridMode() {
+            currentMode = 'grid';
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('grid-game').style.display = 'flex';
+            document.getElementById('status').textContent = 'GRID';
+            generateGrid();
+        }
+
+        function generateGrid() {
+            const board = document.getElementById('grid-board');
+            board.innerHTML = '';
+
+            for (let i = 0; i < 16; i++) {
+                const num = Math.floor(Math.random() * 80) + 2;
+                const tile = document.createElement('div');
+                tile.className = 'num-tile';
+                tile.textContent = num;
+                tile.onclick = () => checkGridTile(tile, num);
+                board.appendChild(tile);
+            }
+        }
+
+        function checkGridTile(tile, num) {
+            if (tile.classList.contains('correct') || tile.classList.contains('wrong')) return;
+
+            if (isPrime(num)) {
+                tile.classList.add('correct');
+                playSound('hit');
+                updateScore(100);
+            } else {
+                tile.classList.add('wrong');
+                playSound('wrong');
+                updateScore(-50);
+            }
+        }
+
+        /* --- โหมด 2: SPEED RUN --- */
+        function startSpeedMode() {
+            currentMode = 'speed';
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('speed-game').style.display = 'flex';
+            document.getElementById('status').textContent = 'SPEED';
+
+            const box = document.getElementById('speed-box');
+            box.innerHTML = '';
+
+            clearInterval(speedInterval);
+            speedInterval = setInterval(spawnFallingNumber, 1200);
+        }
+
+        function spawnFallingNumber() {
+            const box = document.getElementById('speed-box');
+            if (!box || currentMode !== 'speed') return;
+
+            const num = Math.floor(Math.random() * 90) + 2;
+            const el = document.createElement('div');
+            el.className = 'falling-num';
+            el.textContent = num;
+
+            const maxX = box.clientWidth - 60;
+            el.style.left = Math.floor(Math.random() * Math.max(10, maxX)) + 'px';
+            el.style.top = '0px';
+
+            let pos = 0;
+            const fallTimer = setInterval(() => {
+                pos += 2;
+                el.style.top = pos + 'px';
+
+                if (pos > box.clientHeight - 35) {
+                    clearInterval(fallTimer);
+                    if (box.contains(el)) {
+                        if (isPrime(num)) updateScore(-30); // หลุดรอดหักคะแนน
+                        box.removeChild(el);
+                    }
+                }
+            }, 30);
+
+            el.onclick = () => {
+                clearInterval(fallTimer);
+                if (isPrime(num)) {
+                    playSound('hit');
+                    updateScore(150);
+                } else {
+                    playSound('wrong');
+                    updateScore(-100);
+                }
+                if (box.contains(el)) box.removeChild(el);
+            };
+
+            box.appendChild(el);
+        }
+    </script>
+</body>
+
+</html>

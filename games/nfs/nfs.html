@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFS Highway Pursuit - DEK MORTON STUDIO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070a12;
+      --card-bg: #101626;
+      --accent: #00f3ff;
+      --accent-glow: rgba(0, 243, 255, 0.4);
+      --yellow: #ffa502;
+      --red: #ff4757;
+      --blue: #1e90ff;
+      --border-line: rgba(0, 243, 255, 0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 80%),
+        linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 20px 20px, 20px 20px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+    .cyber-frame-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 450px;
+      transition: filter 0.3s;
+      filter: drop-shadow(0 0 12px var(--accent-glow));
+    }
+
+    .cyber-frame-wrapper.police-active {
+      animation: sirenBorder 0.6s infinite alternate;
+    }
+
+    @keyframes sirenBorder {
+      0% {
+        filter: drop-shadow(0 0 20px rgba(255, 71, 87, 0.9)) drop-shadow(-10px -10px 15px rgba(255, 71, 87, 0.6));
+      }
+      100% {
+        filter: drop-shadow(0 0 20px rgba(30, 144, 255, 0.9)) drop-shadow(10px 10px 15px rgba(30, 144, 255, 0.6));
+      }
+    }
+
+    .cyber-frame {
+      position: relative;
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      clip-path: polygon(
+        16px 0, calc(100% - 16px) 0, 100% 16px, 
+        100% calc(100% - 16px), calc(100% - 16px) 100%, 
+        16px 100%, 0 calc(100% - 16px), 0 16px
+      );
+      padding: 16px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: border-color 0.3s;
+    }
+
+    .cyber-frame.police-border {
+      border-color: var(--red);
+    }
+
+    .sys-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border-line);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+    }
+    .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin-right: 5px;
+      box-shadow: 0 0 8px var(--accent);
+      animation: blink 1.2s infinite alternate;
+    }
+    .status-dot.police { background: var(--red); box-shadow: 0 0 8px var(--red); }
+    @keyframes blink { 0% { opacity: 0.3; } 100% { opacity: 1; } }
+
+    .header { text-align: center; margin-bottom: 8px; width: 100%; }
+    .header h1 {
+      color: var(--accent);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+    .header p { font-size: 9px; color: #64748b; letter-spacing: 3px; font-weight: 600; }
+
+    .dashboard {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      background: #090e1a;
+      padding: 6px 4px;
+      border-left: 3px solid var(--accent);
+      border-right: 3px solid var(--accent);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .dash-item { font-size: 8px; color: #64748b; font-family: 'Orbitron', sans-serif; }
+    .dash-val { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 900; color: #fff; }
+    .stage-val { color: var(--yellow); }
+    .chase-val { color: var(--red); }
+
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      margin-bottom: 10px;
+      background: #050810;
+      border: 1px solid var(--border-line);
+      padding: 2px;
+    }
+
+    .corner-bracket {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--accent);
+      z-index: 10;
+      pointer-events: none;
+    }
+    .cb-tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+    .cb-tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+    .cb-bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+    .cb-br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+    #gameCanvas { width: 100%; height: 100%; display: block; }
+
+    .bottom-dashboard {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .gauge-box, .timer-box {
+      width: 95px;
+      height: 100px;
+      background: #090e1a;
+      border: 1px solid var(--border-line);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .box-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 8px;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+
+    #timer-display {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--yellow);
+      text-shadow: 0 0 8px rgba(255, 165, 2, 0.5);
+    }
+
+    #timer-display.danger {
+      color: var(--red);
+      animation: blink 0.5s infinite alternate;
+      text-shadow: 0 0 8px rgba(255, 71, 87, 0.8);
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      flex: 1;
+    }
+    .btn-ctrl {
+      background: #162035;
+      color: var(--accent);
+      border: 1px solid var(--border-line);
+      padding: 8px 0;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .btn-ctrl:active { background: var(--accent); color: #000; }
+
+    .btn-reset {
+      width: 100%;
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      border: none;
+      background: #1e293b;
+      color: #94a3b8;
+      border-left: 3px solid var(--accent);
+      clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cyber-frame-wrapper" id="frame-wrapper">
+    <div class="cyber-frame" id="frame-inner">
+      
+      <div class="sys-header-bar">
+        <span id="sys-status"><span class="status-dot"></span>CRUISE MODE</span>
+        <span>LEVEL: <span id="level-num">1</span></span>
+      </div>
+
+      <div class="header">
+        <h1>HIGHWAY PURSUIT</h1>
+        <p>DEK MORTON STUDIO</p>
+      </div>
+
+      <div class="dashboard">
+        <div class="dash-item">SCORE<br><span id="score-display" class="dash-val">0</span></div>
+        <div class="dash-item">GOAL<br><span id="dist-display" class="dash-val">1200</span> <small>M</small></div>
+        <div class="dash-item">POLICE<br><span id="chase-wave" class="dash-val chase-val">OFF</span></div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <div class="corner-bracket cb-tl"></div>
+        <div class="corner-bracket cb-tr"></div>
+        <div class="corner-bracket cb-bl"></div>
+        <div class="corner-bracket cb-br"></div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+      </div>
+
+      <div class="bottom-dashboard">
+        <div class="gauge-box">
+          <span class="box-title">SPEEDOMETER</span>
+          <canvas id="gaugeCanvas" width="85" height="70"></canvas>
+        </div>
+
+        <div class="controls-grid">
+          <div></div>
+          <button class="btn-ctrl" id="btn-up">▲</button>
+          <div></div>
+          <button class="btn-ctrl" id="btn-left">◀</button>
+          <button class="btn-ctrl" id="btn-down">▼</button>
+          <button class="btn-ctrl" id="btn-right">▶</button>
+        </div>
+
+        <div class="timer-box">
+          <span class="box-title">TIME LEFT</span>
+          <div id="timer-display">30</div>
+          <span style="font-size: 8px; color: #64748b; font-family: Orbitron;">SEC</span>
+        </div>
+      </div>
+
+      <button class="btn-reset" onclick="resetGame()">RESTART 🔄</button>
+
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const gaugeCanvas = document.getElementById('gaugeCanvas');
+    const gCtx = gaugeCanvas.getContext('2d');
+
+    let level = 1;
+    let totalScore = 0;
+    let distanceLeft = 1200;
+    let baseSpeed = 4.5;
+    let playerSpeed = 4.5;
+    let maxSpeed = 8.5;
+    let minSpeed = 2;
+
+    let timeLeft = 30;
+    let timerInterval = null;
+    let startCountdownInterval = null;
+
+    let gameOver = false;
+    let gameWon = false;
+    let timeOut = false;
+    let isStarting = true;
+    let startCountdown = 3;
+
+    let currentWave = 0;
+    let waveCheckpoints = [0.75, 0.50, 0.25];
+    let isChasing = false;
+
+    const lanes = [110, 200, 290];
+    let currentLane = 1;
+    let player = { x: lanes[currentLane], y: 320, w: 30, h: 50, color: '#00f3ff' };
+
+    let botCars = [];
+    let policeCars = [];
+    let explosions = [];
+
+    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd'].includes(e.key)) {
+        e.preventDefault();
+      }
+      if (e.key === 'ArrowUp' || e.key === 'w') keys.ArrowUp = true;
+      if (e.key === 'ArrowDown' || e.key === 's') keys.ArrowDown = true;
+      if (e.key === 'ArrowLeft' || e.key === 'a') changeLane(-1);
+      if (e.key === 'ArrowRight' || e.key === 'd') changeLane(1);
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'w') keys.ArrowUp = false;
+      if (e.key === 'ArrowDown' || e.key === 's') keys.ArrowDown = false;
+    });
+
+    document.getElementById('btn-up').addEventListener('touchstart', (e) => { e.preventDefault(); keys.ArrowUp = true; });
+    document.getElementById('btn-up').addEventListener('touchend', () => keys.ArrowUp = false);
+    document.getElementById('btn-down').addEventListener('touchstart', (e) => { e.preventDefault(); keys.ArrowDown = true; });
+    document.getElementById('btn-down').addEventListener('touchend', () => keys.ArrowDown = false);
+    document.getElementById('btn-left').onclick = () => changeLane(-1);
+    document.getElementById('btn-right').onclick = () => changeLane(1);
+
+    function changeLane(dir) {
+      if (gameOver || gameWon || timeOut || isStarting) return;
+      if (dir === -1 && currentLane > 0) currentLane--;
+      if (dir === 1 && currentLane < 2) currentLane++;
+    }
+
+    // 🛠️ ปรับแก้การเคลียร์ค่าใน initLevel()
+    function initLevel() {
+      if (timerInterval) clearInterval(timerInterval);
+      if (startCountdownInterval) clearInterval(startCountdownInterval);
+
+      gameOver = false;
+      gameWon = false;
+      timeOut = false;
+      isStarting = true;
+      startCountdown = 3;
+      currentWave = 0;
+      isChasing = false;
+
+      distanceLeft = 1000 + level * 200;
+      timeLeft = 25 + level * 5;
+      
+      currentLane = 1;
+      player.x = lanes[1];
+      player.y = 320;
+      playerSpeed = baseSpeed;
+
+      policeCars = [];
+      botCars = [];
+      explosions = [];
+
+      stopSirenUI();
+      document.getElementById('level-num').textContent = level;
+      document.getElementById('score-display').textContent = totalScore;
+      document.getElementById('dist-display').textContent = Math.round(distanceLeft);
+      document.getElementById('chase-wave').textContent = 'OFF';
+
+      const timerElem = document.getElementById('timer-display');
+      timerElem.textContent = timeLeft;
+      timerElem.classList.remove('danger');
+
+      startCountdownInterval = setInterval(() => {
+        startCountdown--;
+        if (startCountdown <= 0) {
+          isStarting = false;
+          clearInterval(startCountdownInterval);
+          startTimer();
+        }
+      }, 1000);
+    }
+
+    // 🛠️ เคลียร์ Timer ตัวเก่าทิ้งก่อนเริ่มใหม่เสมอ
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        if (gameOver || gameWon || isStarting) {
+          clearInterval(timerInterval);
+          return;
+        }
+
+        timeLeft--;
+        const timerElem = document.getElementById('timer-display');
+        timerElem.textContent = Math.max(0, timeLeft);
+
+        if (timeLeft <= 5) {
+          timerElem.classList.add('danger');
+        }
+
+        if (timeLeft <= 0) {
+          timeOut = true;
+          gameOver = true;
+          clearInterval(timerInterval);
+        }
+      }, 1000);
+    }
+
+    function triggerPoliceWave(waveNum) {
+      currentWave = waveNum;
+      isChasing = true;
+      policeCars = [];
+
+      startSirenUI();
+      document.getElementById('chase-wave').textContent = `WAVE ${waveNum}`;
+
+      for (let i = 0; i < waveNum; i++) {
+        let assignedLane = (currentLane + i) % 3;
+        policeCars.push({
+          x: lanes[assignedLane],
+          y: 440 + i * 45,
+          w: 32,
+          h: 52,
+          lane: assignedLane,
+          speedY: 0,
+          targetX: lanes[assignedLane]
+        });
+      }
+    }
+
+    function startSirenUI() {
+      document.getElementById('frame-wrapper').classList.add('police-active');
+      document.getElementById('frame-inner').classList.add('police-border');
+      document.getElementById('sys-status').innerHTML = '<span class="status-dot police"></span>POLICE PURSUIT!';
+    }
+
+    function stopSirenUI() {
+      document.getElementById('frame-wrapper').classList.remove('police-active');
+      document.getElementById('frame-inner').classList.remove('police-border');
+      document.getElementById('sys-status').innerHTML = '<span class="status-dot"></span>CRUISE MODE';
+    }
+
+    function spawnBot() {
+      const laneIdx = Math.floor(Math.random() * 3);
+      const types = [
+        { w: 30, h: 50, color: '#e17055', speed: 2.2 }, 
+        { w: 34, h: 75, color: '#6c5ce7', speed: 1.8 }, 
+        { w: 28, h: 48, color: '#fdcb6e', speed: 3.2 }  
+      ];
+      const type = types[Math.floor(Math.random() * types.length)];
+
+      botCars.push({
+        x: lanes[laneIdx],
+        y: -100,
+        lane: laneIdx,
+        ...type
+      });
+    }
+
+    function update() {
+      if (gameOver || gameWon || isStarting) return;
+
+      let targetMaxSpeed = isChasing ? maxSpeed + 3.5 : maxSpeed;
+      let targetBaseSpeed = isChasing ? baseSpeed + 2.5 : baseSpeed;
+
+      if (keys.ArrowUp && playerSpeed < targetMaxSpeed) {
+        playerSpeed += 0.1;
+      } else if (keys.ArrowDown && playerSpeed > minSpeed) {
+        playerSpeed -= 0.15;
+      } else {
+        if (playerSpeed < targetBaseSpeed) playerSpeed += 0.05;
+        if (playerSpeed > targetBaseSpeed) playerSpeed -= 0.05;
+      }
+
+      player.x += (lanes[currentLane] - player.x) * 0.25;
+
+      distanceLeft -= playerSpeed * 0.35;
+      if (distanceLeft <= 0) {
+        distanceLeft = 0;
+        gameWon = true;
+        totalScore += 500 * level + timeLeft * 50;
+        document.getElementById('score-display').textContent = totalScore;
+      }
+
+      const maxDist = 1000 + level * 200;
+      const progress = distanceLeft / maxDist;
+
+      if (currentWave === 0 && progress <= waveCheckpoints[0]) triggerPoliceWave(1);
+      else if (currentWave === 1 && !isChasing && progress <= waveCheckpoints[1]) triggerPoliceWave(2);
+      else if (currentWave === 2 && !isChasing && progress <= waveCheckpoints[2]) triggerPoliceWave(3);
+
+      if (Math.random() < 0.025 + level * 0.005) {
+        if (botCars.length === 0 || botCars[botCars.length - 1].y > 110) {
+          spawnBot();
+        }
+      }
+
+      botCars.forEach((bot, bIndex) => {
+        bot.y += playerSpeed - bot.speed;
+
+        if (checkCollision(player, bot)) {
+          gameOver = true;
+          createExplosion(player.x, player.y);
+        }
+
+        if (bot.y > 450) botCars.splice(bIndex, 1);
+      });
+
+      if (isChasing) {
+        policeCars.forEach((cop, cIndex) => {
+          if (cop.y > player.y + 55) {
+            cop.y -= 0.6;
+          }
+
+          if (cIndex === 0) {
+            cop.targetX = player.x;
+          } else {
+            let altLane = (currentLane + cIndex) % 3;
+            cop.targetX = lanes[altLane];
+          }
+
+          cop.x += (cop.targetX - cop.x) * 0.08;
+
+          botCars.forEach((bot) => {
+            if (checkCollision(cop, bot)) {
+              createExplosion(cop.x, cop.y);
+              policeCars.splice(cIndex, 1);
+              totalScore += 200;
+              document.getElementById('score-display').textContent = totalScore;
+            }
+          });
+
+          if (checkCollision(player, cop)) {
+            gameOver = true;
+            createExplosion(player.x, player.y);
+          }
+        });
+
+        if (policeCars.length === 0) {
+          isChasing = false;
+          stopSirenUI();
+          document.getElementById('chase-wave').textContent = 'OFF';
+        }
+      }
+
+      explosions.forEach((exp, i) => {
+        exp.radius += 1.5;
+        exp.alpha -= 0.05;
+        if (exp.alpha <= 0) explosions.splice(i, 1);
+      });
+
+      document.getElementById('dist-display').textContent = Math.max(0, Math.round(distanceLeft));
+    }
+
+    function checkCollision(r1, r2) {
+      return !(r1.x + r1.w/2 < r2.x - r2.w/2 || 
+               r1.x - r1.w/2 > r2.x + r2.w/2 || 
+               r1.y + r1.h/2 < r2.y - r2.h/2 || 
+               r1.y - r1.h/2 > r2.y + r2.h/2);
+    }
+
+    function createExplosion(x, y) {
+      explosions.push({ x: x, y: y, radius: 10, alpha: 1 });
+    }
+
+    let roadOffset = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#0a1508';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#1e272e';
+      ctx.fillRect(60, 0, 280, canvas.height);
+
+      ctx.fillStyle = '#00f3ff';
+      ctx.fillRect(56, 0, 4, canvas.height);
+      ctx.fillRect(340, 0, 4, canvas.height);
+
+      if (!isStarting) roadOffset = (roadOffset + playerSpeed * 2.2) % 40;
+
+      ctx.strokeStyle = '#fbc531';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([20, 20]);
+      ctx.lineDashOffset = -roadOffset;
+
+      ctx.beginPath();
+      ctx.moveTo(153, 0); ctx.lineTo(153, canvas.height);
+      ctx.moveTo(246, 0); ctx.lineTo(246, canvas.height);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (distanceLeft <= 150) {
+        drawFinishGrid(100 - (150 - distanceLeft));
+      }
+
+      botCars.forEach(bot => drawCar(bot.x, bot.y, bot.w, bot.h, bot.color));
+      policeCars.forEach(cop => drawPoliceCar(cop.x, cop.y, cop.w, cop.h));
+      drawCar(player.x, player.y, player.w, player.h, player.color, true);
+
+      explosions.forEach(exp => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 71, 87, ${exp.alpha})`;
+        ctx.fill();
+        ctx.restore();
+      });
+
+      if (isStarting) {
+        ctx.fillStyle = '#ffa502';
+        ctx.font = '900 42px Orbitron';
+        ctx.textAlign = 'center';
+        ctx.fillText(startCountdown > 0 ? startCountdown : 'GO!', canvas.width / 2, 200);
+      }
+
+      if (gameOver) {
+        ctx.fillStyle = '#ff4757';
+        ctx.font = 'bold 24px Orbitron';
+        ctx.textAlign = 'center';
+        ctx.fillText(timeOut ? 'TIME OVER!' : 'CRASHED / BUSTED!', canvas.width / 2, 180);
+        ctx.font = '14px Kanit';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('กด RESTART เพื่อลองใหม่อีกครั้ง', canvas.width / 2, 210);
+      } else if (gameWon) {
+        ctx.fillStyle = '#00f3ff';
+        ctx.font = 'bold 24px Orbitron';
+        ctx.textAlign = 'center';
+        ctx.fillText('STAGE PASSED!', canvas.width / 2, 180);
+        ctx.font = '14px Kanit';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('เข้าเส้นชัยทันเวลา! กำลังไปด่านถัดไป...', canvas.width / 2, 210);
+      }
+
+      drawSpeedometer();
+    }
+
+    function drawSpeedometer() {
+      const cx = gaugeCanvas.width / 2;
+      const cy = gaugeCanvas.height - 12;
+      const radius = 32;
+
+      gCtx.clearRect(0, 0, gaugeCanvas.width, gaugeCanvas.height);
+
+      gCtx.beginPath();
+      gCtx.arc(cx, cy, radius, Math.PI, 0, false);
+      gCtx.lineWidth = 6;
+      gCtx.strokeStyle = '#1e293b';
+      gCtx.stroke();
+
+      const kmh = Math.round(playerSpeed * 30);
+      const maxKmh = 360;
+      const speedRatio = Math.min(kmh / maxKmh, 1);
+      const angle = Math.PI + speedRatio * Math.PI;
+
+      gCtx.beginPath();
+      gCtx.arc(cx, cy, radius, Math.PI, angle, false);
+      gCtx.lineWidth = 6;
+      gCtx.strokeStyle = kmh > 260 ? '#ff4757' : '#00f3ff';
+      gCtx.stroke();
+
+      gCtx.fillStyle = '#ffffff';
+      gCtx.font = '900 11px Orbitron';
+      gCtx.textAlign = 'center';
+      gCtx.fillText(kmh, cx, cy - 8);
+      gCtx.fillStyle = '#64748b';
+      gCtx.font = '8px Orbitron';
+      gCtx.fillText('KM/H', cx, cy + 5);
+
+      gCtx.save();
+      gCtx.translate(cx, cy);
+      gCtx.rotate(angle + Math.PI / 2);
+
+      gCtx.beginPath();
+      gCtx.moveTo(0, 0);
+      gCtx.lineTo(0, -radius + 2);
+      gCtx.strokeStyle = '#ff4757';
+      gCtx.lineWidth = 2;
+      gCtx.stroke();
+
+      gCtx.beginPath();
+      gCtx.arc(0, 0, 3, 0, Math.PI * 2);
+      gCtx.fillStyle = '#ffffff';
+      gCtx.fill();
+      gCtx.restore();
+    }
+
+    function drawCar(x, y, w, h, color, isPlayer = false) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillRect(-w/2 + 2, -h/2 + 2, w, h);
+
+      ctx.fillStyle = color;
+      ctx.fillRect(-w/2, -h/2, w, h);
+
+      ctx.fillStyle = '#1e272e';
+      ctx.fillRect(-w/2 + 3, -h/2 + 8, w - 6, 10);
+      ctx.fillRect(-w/2 + 4, h/2 - 12, w - 8, 6);
+
+      if (isPlayer) {
+        ctx.fillStyle = '#00f3ff';
+        ctx.fillRect(-w/2 + 2, -h/2, 6, 3);
+        ctx.fillRect(w/2 - 8, -h/2, 6, 3);
+        ctx.fillStyle = '#ff4757';
+        ctx.fillRect(-w/2 + 2, h/2 - 2, 6, 2);
+        ctx.fillRect(w/2 - 8, h/2 - 2, 6, 2);
+      } else {
+        ctx.fillStyle = '#ff4757';
+        ctx.fillRect(-w/2 + 2, -h/2, 6, 2);
+        ctx.fillRect(w/2 - 8, -h/2, 6, 2);
+      }
+
+      ctx.restore();
+    }
+
+    function drawPoliceCar(x, y, w, h) {
+      drawCar(x, y, w, h, '#ffffff');
+
+      ctx.save();
+      ctx.translate(x, y);
+      const flash = Math.floor(Date.now() / 120) % 2 === 0;
+      
+      ctx.fillStyle = flash ? '#ff4757' : '#1e90ff';
+      ctx.fillRect(-8, -2, 6, 4);
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.shadowBlur = 10;
+
+      ctx.fillStyle = flash ? '#1e90ff' : '#ff4757';
+      ctx.fillRect(2, -2, 6, 4);
+      ctx.restore();
+    }
+
+    function drawFinishGrid(y) {
+      ctx.save();
+      for (let i = 0; i < 7; i++) {
+        ctx.fillStyle = i % 2 === 0 ? '#ffffff' : '#000000';
+        ctx.fillRect(60 + i * 40, y, 40, 15);
+      }
+      ctx.restore();
+    }
+
+    function loop() {
+      update();
+      draw();
+
+      if (gameWon && !isStarting) {
+        setTimeout(() => {
+          level++;
+          initLevel();
+        }, 2000);
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    // 🛠️ ปุ่ม Reset ล้างค่า Timer ก่อนเสมอ
+    function resetGame() {
+      if (timerInterval) clearInterval(timerInterval);
+      if (startCountdownInterval) clearInterval(startCountdownInterval);
+      level = 1;
+      totalScore = 0;
+      initLevel();
+    }
+
+    initLevel();
+    loop();
+  </script>
+</body>
+</html>

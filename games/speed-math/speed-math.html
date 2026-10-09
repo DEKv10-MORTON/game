@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speed Math Challenge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; }
+    body {
+      background-color: #0f172a;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .game-card {
+      background: #1e293b;
+      border: 2px solid #38bdf8;
+      border-radius: 16px;
+      padding: 25px;
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+    }
+    h1 { color: #38bdf8; font-size: 26px; margin-bottom: 5px; font-weight: 700; }
+    p.desc { font-size: 14px; color: #94a3b8; margin-bottom: 15px; }
+
+    /* แถบแดชบอร์ดแสดงเวลาและคะแนน */
+    .dashboard {
+      display: flex;
+      justify-content: space-between;
+      background: #0f172a;
+      padding: 12px 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #334155;
+    }
+    .dash-item { font-size: 14px; color: #94a3b8; }
+    .dash-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #00ffcc; }
+    .timer-val { color: #ff007f; }
+
+    /* กล่องโจทย์ & ลายน้ำเปิดโปร */
+    .question-box {
+      position: relative;
+      background-color: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      color: #fff;
+      font-size: 36px;
+      font-weight: bold;
+      font-family: 'Orbitron', sans-serif;
+    }
+    .question-box.hint-active::before {
+      content: attr(data-hint);
+      position: absolute;
+      right: 15px;
+      bottom: 5px;
+      color: rgba(0, 255, 204, 0.35);
+      font-size: 14px;
+      font-family: 'Kanit', sans-serif;
+      pointer-events: none;
+    }
+
+    /* ตัวป้อนคำตอบ */
+    .answer-input {
+      width: 100%;
+      background: #0f172a;
+      border: 2px solid #38bdf8;
+      border-radius: 10px;
+      padding: 12px;
+      color: #00f2fe;
+      font-size: 28px;
+      text-align: center;
+      font-weight: bold;
+      font-family: 'Orbitron', sans-serif;
+      outline: none;
+      margin-bottom: 15px;
+    }
+    .answer-input:focus { border-color: #00ffcc; box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); }
+
+    /* ปุ่มควบคุม */
+    .btn-start {
+      width: 100%;
+      padding: 14px;
+      background: #00ffcc;
+      color: #0f172a;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-start:hover { background: #00cca3; transform: scale(1.02); }
+
+    .cheat-btn-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 5px;
+    }
+    .cheat-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid #00f2fe;
+      color: #00f2fe;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-card">
+    <h1>⚡ SPEED MATH CHALLENGE</h1>
+    <p class="desc">ตอบคำถามคณิตศาสตร์ให้ได้มากที่สุดภายใน 30 วินาที!</p>
+
+    <!-- ปุ่มเปิดโปร ชิดขวาบน -->
+    <div class="cheat-btn-container">
+      <button id="cheat-btn" class="cheat-btn" onclick="toggleCheatMode()">⚡ เปิดโปร (ดูเฉลย)</button>
+    </div>
+
+    <!-- แดชบอร์ด เวลา & คะแนน -->
+    <div class="dashboard">
+      <div class="dash-item">เวลา: <br><span id="timer" class="dash-val timer-val">30</span>s</div>
+      <div class="dash-item">คะแนน: <br><span id="score" class="dash-val">0</span></div>
+      <div class="dash-item">สถิติสูงสุด: <br><span id="high-score" class="dash-val" style="color:#ffb703;">0</span></div>
+    </div>
+
+    <!-- แสดงโจทย์ -->
+    <div class="question-box" id="question-box">READY?</div>
+
+    <!-- ช่องพิมพ์คำตอบ -->
+    <input type="number" id="answer-input" class="answer-input" placeholder="ตอบ..." disabled onkeyup="checkAnswer(event)">
+
+    <!-- ปุ่มเริ่มเกม -->
+    <button id="start-btn" class="btn-start" onclick="startGame()">เริ่มเล่นเกม 🚀</button>
+  </div>
+
+  <script>
+    let score = 0;
+    let timeLeft = 30;
+    let timerInterval = null;
+    let currentAnswer = 0;
+    let isPlaying = false;
+    let isCheatOn = false;
+
+    // โหลด High Score จาก LocalStorage
+    let highScore = localStorage.getItem('speed_math_highscore') || 0;
+    document.getElementById('high-score').innerText = highScore;
+
+    function toggleCheatMode() {
+      isCheatOn = !isCheatOn;
+      const btn = document.getElementById('cheat-btn');
+      if (isCheatOn) {
+        btn.style.background = '#00f2fe';
+        btn.style.color = '#000';
+        btn.innerText = '⚡ ปิดโปร';
+      } else {
+        btn.style.background = 'rgba(255, 255, 255, 0.1)';
+        btn.style.color = '#00f2fe';
+        btn.innerText = '⚡ เปิดโปร (ดูเฉลย)';
+      }
+      updateHintDisplay();
+    }
+
+    function updateHintDisplay() {
+      const qBox = document.getElementById('question-box');
+      if (isPlaying && isCheatOn) {
+        qBox.setAttribute('data-hint', `เฉลย: ${currentAnswer}`);
+        qBox.classList.add('hint-active');
+      } else {
+        qBox.classList.remove('hint-active');
+      }
+    }
+
+    function generateQuestion() {
+      const ops = ['+', '-', '*'];
+      const op = ops[Math.floor(Math.random() * ops.length)];
+      let num1, num2;
+
+      if (op === '+') {
+        num1 = Math.floor(Math.random() * 50) + 1;
+        num2 = Math.floor(Math.random() * 50) + 1;
+        currentAnswer = num1 + num2;
+      } else if (op === '-') {
+        num1 = Math.floor(Math.random() * 50) + 10;
+        num2 = Math.floor(Math.random() * num1); // ไม่ติดลบ
+        currentAnswer = num1 - num2;
+      } else if (op === '*') {
+        num1 = Math.floor(Math.random() * 12) + 1;
+        num2 = Math.floor(Math.random() * 12) + 1;
+        currentAnswer = num1 * num2;
+      }
+
+      const displayOp = op === '*' ? '×' : op;
+      document.getElementById('question-box').innerText = `${num1} ${displayOp} ${num2}`;
+      updateHintDisplay();
+    }
+
+    function startGame() {
+      score = 0;
+      timeLeft = 30;
+      isPlaying = true;
+
+      document.getElementById('score').innerText = score;
+      document.getElementById('timer').innerText = timeLeft;
+      document.getElementById('start-btn').style.display = 'none';
+      
+      const input = document.getElementById('answer-input');
+      input.disabled = false;
+      input.value = '';
+      input.focus();
+
+      generateQuestion();
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function checkAnswer(e) {
+      if (!isPlaying) return;
+
+      const input = document.getElementById('answer-input');
+      const val = parseInt(input.value);
+
+      if (val === currentAnswer) {
+        score += 10;
+        document.getElementById('score').innerText = score;
+        input.value = '';
+        generateQuestion();
+      }
+    }
+
+    function endGame() {
+      clearInterval(timerInterval);
+      isPlaying = false;
+
+      const input = document.getElementById('answer-input');
+      input.disabled = true;
+      input.value = '';
+
+      document.getElementById('question-box').innerText = 'หมดเวลา! 🏁';
+      document.getElementById('question-box').classList.remove('hint-active');
+      
+      const startBtn = document.getElementById('start-btn');
+      startBtn.style.display = 'block';
+      startBtn.innerText = 'เล่นอีกครั้ง 🔄';
+
+      // อัปเดต High Score
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('speed_math_highscore', highScore);
+        document.getElementById('high-score').innerText = highScore;
+        alert(`🎉 สถิติใหม่สุดยอดมาก! ทำได้ ${score} คะแนน`);
+      }
+    }
+  </script>
+</body>
+</html>

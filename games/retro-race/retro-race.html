@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro Road Racer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; }
+    body {
+      background-color: #0f172a;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 10px;
+    }
+    .game-card {
+      background: #1e293b;
+      border: 2px solid #ff007f;
+      border-radius: 16px;
+      padding: 12px 16px;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(255, 0, 127, 0.3);
+    }
+    h1 { color: #ff007f; font-family: 'Press Start 2P', cursive; font-size: 13px; margin-bottom: 6px; }
+    
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      background: #0f172a;
+      padding: 6px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 11px;
+      border: 1px solid #334155;
+    }
+    .hud span { font-family: 'Press Start 2P', cursive; color: #00ffcc; font-size: 10px; }
+
+    /* ครอบกระดานเกม + หลอดน้ำมันแท่งแก้ว */
+    .game-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* สไตล์แท่งแก้ววัดน้ำมัน */
+    .fuel-gauge-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 280px;
+    }
+    .fuel-label {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 8px;
+      color: #ff007f;
+      margin-bottom: 4px;
+    }
+    .fuel-glass-bar {
+      width: 16px;
+      height: 260px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid #ff007f;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 8px rgba(255, 0, 127, 0.4), inset 0 0 5px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .fuel-fill {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #00ffcc 0%, #ff007f 100%);
+      transition: height 0.1s linear, background 0.3s;
+      box-shadow: 0 0 8px #00ffcc;
+    }
+    /* เส้นวัดระดับข้างแท่งแก้ว */
+    .fuel-glass-bar::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(to bottom, 
+        transparent 19%, rgba(255,255,255,0.3) 20%, 
+        transparent 39%, rgba(255,255,255,0.3) 40%, 
+        transparent 59%, rgba(255,255,255,0.3) 60%, 
+        transparent 79%, rgba(255,255,255,0.3) 80%);
+      pointer-events: none;
+    }
+
+    canvas {
+      background: #333;
+      border: 2px solid #ff007f;
+      border-radius: 8px;
+      display: block;
+      box-shadow: inset 0 0 10px #000;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .btn-ctrl {
+      flex: 1;
+      padding: 8px;
+      background: #0f172a;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .btn-ctrl:active { background: #38bdf8; color: #0f172a; }
+
+    .btn-start {
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      background: #ff007f;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-start:hover { background: #e0006c; }
+  </style>
+</head>
+<body>
+
+  <div class="game-card">
+    <h1>RETRO RACER</h1>
+    
+    <div class="hud">
+      <div>SCORE: <span id="score">0</span></div>
+      <div>FUEL: <span id="fuel-text" style="color:#ff007f;">100%</span></div>
+    </div>
+
+    <!-- โซนกระดาน + แท่งแก้วน้ำมันด้านซ้าย -->
+    <div class="game-container">
+      <div class="fuel-gauge-container">
+        <div class="fuel-label">FUEL</div>
+        <div class="fuel-glass-bar">
+          <div id="fuelFill" class="fuel-fill"></div>
+        </div>
+      </div>
+      <canvas id="gameCanvas" width="230" height="280"></canvas>
+    </div>
+
+    <div class="controls">
+      <button class="btn-ctrl" id="leftBtn">◀ ซ้าย</button>
+      <button class="btn-ctrl" id="rightBtn">ขวา ▶</button>
+    </div>
+
+    <button id="startBtn" class="btn-start" onclick="startGame()">เริ่มเกม 🚀</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let isPlaying = false;
+    let score = 0;
+    let fuel = 100;
+    let animId = null;
+    let roadOffset = 0;
+
+    const player = {
+      x: 100,
+      y: 220,
+      w: 26,
+      h: 44,
+      speed: 4.5
+    };
+
+    let enemies = [];
+    let fuels = [];
+    let keys = { left: false, right: false };
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
+      if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+    });
+    window.addEventListener('keyup', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+    });
+
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.left = true; });
+    leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.left = false; });
+    leftBtn.addEventListener('mousedown', () => keys.left = true);
+    leftBtn.addEventListener('mouseup', () => keys.left = false);
+
+    rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.right = true; });
+    rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.right = false; });
+    rightBtn.addEventListener('mousedown', () => keys.right = true);
+    rightBtn.addEventListener('mouseup', () => keys.right = false);
+
+    function drawCar(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x + 4, y, 18, 44);
+      ctx.fillRect(x, y + 8, 26, 26);
+
+      ctx.fillStyle = '#000';
+      ctx.fillRect(x - 2, y + 4, 4, 10);
+      ctx.fillRect(x + 24, y + 4, 4, 10);
+      ctx.fillRect(x - 2, y + 30, 4, 10);
+      ctx.fillRect(x + 24, y + 30, 4, 10);
+
+      ctx.fillStyle = '#87ceeb';
+      ctx.fillRect(x + 6, y + 12, 14, 8);
+    }
+
+    function drawFuelItem(x, y) {
+      ctx.fillStyle = '#00ffcc';
+      ctx.fillRect(x, y, 20, 20);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 11px Kanit';
+      ctx.fillText('F', x + 6, y + 14);
+    }
+
+    function spawnObjects() {
+      if (Math.random() < 0.03 && enemies.length < 3) {
+        const laneX = [30, 75, 125, 165];
+        const rx = laneX[Math.floor(Math.random() * laneX.length)];
+        enemies.push({ x: rx, y: -50, speed: Math.random() * 2 + 3 });
+      }
+
+      if (Math.random() < 0.008 && fuels.length < 1) {
+        const laneX = [35, 80, 130, 160];
+        const rx = laneX[Math.floor(Math.random() * laneX.length)];
+        fuels.push({ x: rx, y: -30 });
+      }
+    }
+
+    function update() {
+      if (!isPlaying) return;
+
+      if (keys.left && player.x > 24) player.x -= player.speed;
+      if (keys.right && player.x < 176) player.x += player.speed;
+
+      roadOffset = (roadOffset + 5) % 40;
+
+      enemies.forEach((enemy, idx) => {
+        enemy.y += enemy.speed;
+
+        if (
+          player.x < enemy.x + 26 &&
+          player.x + player.w > enemy.x &&
+          player.y < enemy.y + 44 &&
+          player.y + player.h > enemy.y
+        ) {
+          gameOver('💥 ชนรถคันอื่น! Game Over');
+        }
+
+        if (enemy.y > canvas.height) enemies.splice(idx, 1);
+      });
+
+      fuels.forEach((f, idx) => {
+        f.y += 3;
+
+        if (
+          player.x < f.x + 20 &&
+          player.x + player.w > f.x &&
+          player.y < f.y + 20 &&
+          player.y + player.h > f.y
+        ) {
+          fuel = Math.min(100, fuel + 25);
+          fuels.splice(idx, 1);
+        }
+
+        if (f.y > canvas.height) fuels.splice(idx, 1);
+      });
+
+      fuel -= 0.08;
+      score += 1;
+
+      // อัปเดตตัวเลข HUD & แท่งแก้วน้ำมัน
+      const currentFuel = Math.max(0, Math.floor(fuel));
+      document.getElementById('score').innerText = Math.floor(score / 10);
+      document.getElementById('fuel-text').innerText = `${currentFuel}%`;
+      
+      const fuelFill = document.getElementById('fuelFill');
+      fuelFill.style.height = `${currentFuel}%`;
+      
+      // เปลี่ยนสีเป็นแดงฉุกเฉินถ้าน้ำมันเหลือน้อยกว่า 25%
+      if (currentFuel < 25) {
+        fuelFill.style.background = '#ef4444';
+        fuelFill.style.boxShadow = '0 0 8px #ef4444';
+      } else {
+        fuelFill.style.background = 'linear-gradient(180deg, #00ffcc 0%, #ff007f 100%)';
+        fuelFill.style.boxShadow = '0 0 8px #00ffcc';
+      }
+
+      if (fuel <= 0) {
+        gameOver('⛽ น้ำมันหมด! Game Over');
+      }
+
+      spawnObjects();
+    }
+
+    function render() {
+      ctx.fillStyle = '#2e7d32';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(20, 0, 186, canvas.height);
+
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(20, 0, 4, canvas.height);
+      ctx.fillRect(202, 0, 4, canvas.height);
+
+      ctx.fillStyle = '#f59e0b';
+      for (let y = -40 + roadOffset; y < canvas.height; y += 40) {
+        ctx.fillRect(111, y, 4, 18);
+      }
+
+      fuels.forEach(f => drawFuelItem(f.x, f.y));
+      enemies.forEach(e => drawCar(e.x, e.y, '#eab308'));
+      drawCar(player.x, player.y, '#ff007f');
+    }
+
+    function gameLoop() {
+      update();
+      render();
+      if (isPlaying) animId = requestAnimationFrame(gameLoop);
+    }
+
+    function startGame() {
+      cancelAnimationFrame(animId);
+      isPlaying = true;
+      score = 0;
+      fuel = 100;
+      player.x = 100;
+      enemies = [];
+      fuels = [];
+
+      document.getElementById('startBtn').innerText = 'รีสตาร์ท 🔄';
+      gameLoop();
+    }
+
+    function gameOver(msg) {
+      isPlaying = false;
+      cancelAnimationFrame(animId);
+      setTimeout(() => alert(`${msg}\nคะแนนที่ได้: ${Math.floor(score / 10)}`), 50);
+    }
+
+    render();
+  </script>
+</body>
+</html>

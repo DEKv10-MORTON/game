@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stack Tower Neon - DEK MORTON STUDIO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #151c2e;
+      --accent: #00f3ff;
+      --accent-glow: rgba(0, 243, 255, 0.35);
+      --yellow: #ffa502;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kanit', sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+    /* การ์ดเกมหลัก ออกแบบสไตล์ Speed Math ไม่ล้นขอบจอ */
+    .game-card {
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 18px;
+      width: 100%;
+      max-width: 420px;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 0 25px var(--accent-glow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .game-card::-webkit-scrollbar { width: 5px; }
+    .game-card::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+    .game-card::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+
+    .header { text-align: center; margin-bottom: 12px; width: 100%; }
+    .header h1 {
+      color: var(--accent);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 22px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+    .header p { font-size: 10px; color: #64748b; letter-spacing: 2px; }
+
+    /* แดชบอร์ดแสดงผล */
+    .dashboard {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      background: #0f172a;
+      padding: 8px 15px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .dash-item { font-size: 10px; color: #94a3b8; }
+    .dash-val { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 900; color: #fff; }
+    .score-val { color: var(--accent); }
+    .high-val { color: var(--yellow); }
+
+    /* กระดาน Canvas */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1.1;
+      background: #080c14;
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .btn-start {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      box-shadow: 0 0 15px var(--accent-glow);
+      transition: all 0.2s;
+    }
+    .btn-start:hover { opacity: 0.9; transform: scale(1.02); }
+  </style>
+</head>
+<body>
+
+  <div class="game-card">
+    <div class="header">
+      <h1>STACK TOWER NEON</h1>
+      <p>DEK MORTON STUDIO</p>
+    </div>
+
+    <div class="dashboard">
+      <div class="dash-item">HEIGHT / SCORE<br><span id="score" class="dash-val score-val">0</span></div>
+      <div class="dash-item">HIGH SCORE<br><span id="high-score" class="dash-val high-val">0</span></div>
+      <div class="dash-item">COMBO<br><span id="combo-val" class="dash-val">x0</span></div>
+    </div>
+
+    <div class="canvas-container" id="canvas-container" onclick="placeBlock()">
+      <canvas id="gameCanvas" width="400" height="440"></canvas>
+    </div>
+
+    <button id="start-btn" class="btn-start" onclick="startGame()">START STACKING 🚀</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let score = 0;
+    let highScore = localStorage.getItem('stack_tower_highscore') || 0;
+    document.getElementById('high-score').textContent = highScore;
+
+    const BLOCK_HEIGHT = 16;
+    let stack = [];
+    let activeBlock = null;
+    let speed = 2.5;
+    let direction = 1;
+    let hue = 180; // โทนสีเริ่มต้น (Cyan)
+    let combo = 0;
+    let isPlaying = false;
+    let cameraY = 0;
+    let targetCameraY = 0;
+    let perfectText = { show: false, opacity: 0, y: 0 };
+
+    // เสียง Synth สไตล์ Retro
+    function playAudio(type) {
+      try {
+        const ctxAudio = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctxAudio.createOscillator();
+        const gain = ctxAudio.createGain();
+        osc.connect(gain);
+        gain.connect(ctxAudio.destination);
+
+        if (type === 'place') {
+          osc.frequency.setValueAtTime(300 + combo * 40, ctxAudio.currentTime);
+          gain.gain.setValueAtTime(0.1, ctxAudio.currentTime);
+          osc.start();
+          osc.stop(ctxAudio.currentTime + 0.08);
+        } else if (type === 'over') {
+          osc.frequency.setValueAtTime(150, ctxAudio.currentTime);
+          gain.gain.setValueAtTime(0.2, ctxAudio.currentTime);
+          osc.start();
+          osc.stop(ctxAudio.currentTime + 0.3);
+        }
+      } catch (e) {}
+    }
+
+    function startGame() {
+      stack = [];
+      score = 0;
+      combo = 0;
+      hue = 180;
+      speed = 2.5;
+      cameraY = 0;
+      targetCameraY = 0;
+
+      document.getElementById('score').textContent = score;
+      document.getElementById('combo-val').textContent = 'x0';
+      document.getElementById('start-btn').style.display = 'none';
+
+      // บล็อกฐานล่างสุด
+      const baseWidth = 180;
+      stack.push({
+        x: (canvas.width - baseWidth) / 2,
+        width: baseWidth,
+        y: canvas.height - 40,
+        hue: hue
+      });
+
+      spawnNextBlock();
+      isPlaying = true;
+      animate();
+    }
+
+    function spawnNextBlock() {
+      const topBlock = stack[stack.length - 1];
+      hue = (hue + 8) % 360;
+      
+      activeBlock = {
+        x: direction === 1 ? -topBlock.width : canvas.width,
+        width: topBlock.width,
+        y: topBlock.y - BLOCK_HEIGHT,
+        hue: hue
+      };
+
+      // เพิ่มความเร็วเล็กน้อยตามระดับชั้น
+      speed = 2.5 + Math.min(score * 0.08, 6);
+    }
+
+    function placeBlock() {
+      if (!isPlaying || !activeBlock) return;
+
+      const topBlock = stack[stack.length - 1];
+      const diff = activeBlock.x - topBlock.x;
+      const absDiff = Math.abs(diff);
+
+      // วางตรงล็อกเป๊ะ (Perfect Tolerance 3px)
+      if (absDiff < 3) {
+        activeBlock.x = topBlock.x; // ปรับให้ตรงเป๊ะ
+        combo++;
+        playAudio('place');
+        showPerfect();
+      } else {
+        combo = 0;
+        const newWidth = topBlock.width - absDiff;
+
+        if (newWidth <= 0) {
+          gameOver();
+          return;
+        }
+
+        if (diff > 0) {
+          activeBlock.width = newWidth;
+        } else {
+          activeBlock.x = topBlock.x;
+          activeBlock.width = newWidth;
+        }
+        playAudio('place');
+      }
+
+      document.getElementById('combo-val').textContent = `x${combo}`;
+      stack.push({ ...activeBlock });
+      score++;
+      document.getElementById('score').textContent = score;
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('stack_tower_highscore', highScore);
+        document.getElementById('high-score').textContent = highScore;
+      }
+
+      // สลับทิศทางวิ่ง
+      direction *= -1;
+
+      // เลื่อนมุมมองกล้องตามความสูง
+      if (stack.length > 8) {
+        targetCameraY += BLOCK_HEIGHT;
+      }
+
+      spawnNextBlock();
+    }
+
+    function showPerfect() {
+      perfectText = {
+        show: true,
+        opacity: 1,
+        y: activeBlock.y - 10
+      };
+    }
+
+    function animate() {
+      if (!isPlaying) return;
+
+      // ปรับตำแหน่งบล็อกที่วิ่งไปมา
+      activeBlock.x += speed * direction;
+      if (direction === 1 && activeBlock.x > canvas.width) direction = -1;
+      if (direction === -1 && activeBlock.x < -activeBlock.width) direction = 1;
+
+      // กล้องค่อยๆ เลื่อนอย่างนุ่มนวล
+      cameraY += (targetCameraY - cameraY) * 0.1;
+
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.translate(0, cameraY);
+
+      // วาดเส้นกริดนีออน
+      ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let y = 0; y < canvas.height + cameraY; y += 20) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // วาดตึกที่ตั้งซ้อนกันขึ้นไป
+      stack.forEach((b, idx) => {
+        ctx.save();
+        ctx.fillStyle = `hsl(${b.hue}, 100%, 50%)`;
+        ctx.shadowColor = `hsl(${b.hue}, 100%, 50%)`;
+        ctx.shadowBlur = idx === stack.length - 1 ? 12 : 4;
+        ctx.fillRect(b.x, b.y, b.width, BLOCK_HEIGHT - 1);
+        ctx.restore();
+      });
+
+      // วาดบล็อกที่กำลังขยับ
+      if (activeBlock) {
+        ctx.save();
+        ctx.fillStyle = `hsl(${activeBlock.hue}, 100%, 50%)`;
+        ctx.shadowColor = `hsl(${activeBlock.hue}, 100%, 50%)`;
+        ctx.shadowBlur = 15;
+        ctx.fillRect(activeBlock.x, activeBlock.y, activeBlock.width, BLOCK_HEIGHT - 1);
+        ctx.restore();
+      }
+
+      // แสดงข้อความ PERFECT!
+      if (perfectText.show && perfectText.opacity > 0) {
+        ctx.save();
+        ctx.fillStyle = `rgba(0, 243, 255, ${perfectText.opacity})`;
+        ctx.font = '900 16px Orbitron';
+        ctx.textAlign = 'center';
+        ctx.fillText('PERFECT!', canvas.width / 2, perfectText.y);
+        perfectText.opacity -= 0.03;
+        perfectText.y -= 0.5;
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    function gameOver() {
+      isPlaying = false;
+      playAudio('over');
+
+      ctx.fillStyle = 'rgba(11, 15, 25, 0.85)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#ff4757';
+      ctx.font = '900 24px Orbitron';
+      ctx.textAlign = 'center';
+      ctx.fillText('TOWER COLLAPSED', canvas.width / 2, canvas.height / 2 - 10);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '14px Kanit';
+      ctx.fillText(`ความสูงที่ทำได้: ${score} ชั้น`, canvas.width / 2, canvas.height / 2 + 20);
+
+      const startBtn = document.getElementById('start-btn');
+      startBtn.style.display = 'block';
+      startBtn.textContent = 'REBUILD TOWER 🔄';
+    }
+
+    // วาดหน้าปกก่อนกดเริ่มเล่น
+    ctx.fillStyle = '#080c14';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#00f3ff';
+    ctx.font = '16px Kanit';
+    ctx.textAlign = 'center';
+    ctx.fillText('แตะหน้าจอ หรือกดปุ่ม เพื่อเริ่มเล่น', canvas.width / 2, canvas.height / 2);
+  </script>
+</body>
+</html>
