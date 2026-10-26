@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Penalty Shootout - Next-Gen Visuals</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #050b14;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 25px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.75);
+            padding: 16px 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .score-board {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .attempts {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        .dot.save { background: #00e676; border-color: #b9f6ca; box-shadow: 0 0 10px #00e676; }
+        .dot.conceded { background: #ff1744; border-color: #ff8e8c; box-shadow: 0 0 10px #ff1744; }
+
+        /* Control Grid Panel */
+        #controls-panel {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            pointer-events: auto;
+            background: rgba(15, 23, 42, 0.85);
+            padding: 22px 30px;
+            border-radius: 24px;
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        .panel-title {
+            color: #f1f5f9;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .dir-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 320px;
+        }
+
+        .dir-btn {
+            background: rgba(30, 41, 59, 0.8);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 12px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dir-btn:hover {
+            background: rgba(51, 65, 85, 0.9);
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+        .dir-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #ffffff;
+            border-color: #60a5fa;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+            transform: scale(1.05);
+        }
+
+        .ready-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 14px 50px;
+            font-size: 20px;
+            font-weight: 800;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+            transition: all 0.2s;
+            letter-spacing: 1px;
+        }
+        .ready-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.6);
+        }
+
+        /* Result Modal */
+        #result-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 30, 0.92);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            pointer-events: auto;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        #result-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        #result-modal h1 {
+            font-size: 56px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #result-modal p {
+            font-size: 24px;
+            margin-bottom: 35px;
+            color: #94a3b8;
+        }
+        .btn-restart {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 16px 45px;
+            font-size: 20px;
+            font-weight: 800;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <div class="header">
+            <div class="score-board">
+                SAVES: <span id="score" style="-webkit-text-fill-color: #fff;">0</span> / 5
+            </div>
+            <div class="attempts" id="attempts-container">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+
+        <div id="controls-panel">
+            <div class="panel-title">🧤 เลือกทิศทางพุ่งเซฟ (Goalkeeper Position)</div>
+            <div class="dir-grid">
+                <button class="dir-btn" onclick="selectDirection(-2.6, 1.8, this)">↖️ ซ้ายบน</button>
+                <button class="dir-btn" onclick="selectDirection(0, 2.0, this)">⬆️ ตรงกลางสูง</button>
+                <button class="dir-btn" onclick="selectDirection(2.6, 1.8, this)">↗️ ขวาบน</button>
+                <button class="dir-btn active" onclick="selectDirection(-2.2, 0.5, this)">↙️ ซ้ายล่าง</button>
+                <button class="dir-btn" onclick="selectDirection(0, 0.5, this)">⬇️ ตรงกลางล่าง</button>
+                <button class="dir-btn" onclick="selectDirection(2.2, 0.5, this)">↘️ ขวาล่าง</button>
+            </div>
+            <button class="ready-btn" id="ready-button" onclick="startKickSequence()">ส่งสัญญาณให้เตะ! ⚽</button>
+        </div>
+    </div>
+
+    <div id="result-modal">
+        <h1 id="result-title">SUPER SAVER! 🏆</h1>
+        <p id="result-desc">คุณเซฟได้ 0 ประตู</p>
+        <button class="btn-restart" onclick="resetGame()">เล่นใหม่อีกครั้ง ⚽</button>
+    </div>
+
+    <script>
+        // --- Web Audio Synthesizer ---
+        const AudioSys = {
+            ctx: null,
+            init() {
+                if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            },
+            playWhistle() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(2400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(2900, this.ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+            },
+            playKick() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(20, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.9, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+            },
+            playSave() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.7, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.25);
+            }
+        };
+
+        // --- Core Variables ---
+        let scene, camera, renderer;
+        let ball, striker, goalkeeper, targetRing;
+        const GRAVITY = -18.0;
+        const GOAL_Z = -18.0;
+        const BALL_START_Z = 0.0;
+
+        let ballVel = new THREE.Vector3();
+        let ballPos = new THREE.Vector3(0, 0.3, BALL_START_Z);
+        let isBallKicked = false, isRoundOver = false;
+
+        let selectedTargetX = -2.2, selectedTargetY = 0.5;
+        let gkPos = new THREE.Vector3(0, 0, GOAL_Z + 0.4);
+        let gkVel = new THREE.Vector3(0, 0, 0);
+        let isGkDiving = false;
+
+        let score = 0, currentAttempt = 0;
+        const maxAttempts = 5;
+        let attemptsHistory = [];
+
+        init();
+        animate();
+
+        function init() {
+            const container = document.getElementById('canvas-container');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a1128); // Dark Stadium Atmosphere
+            scene.fog = new THREE.FogExp2(0x0a1128, 0.025);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 1.8, GOAL_Z - 2.8);
+            camera.lookAt(0, 1.1, BALL_START_Z);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Stadium Lighting Architecture
+            const ambient = new THREE.AmbientLight(0x384e78, 0.7);
+            scene.add(ambient);
+
+            // Stadium Floodlights
+            const spot1 = new THREE.SpotLight(0xffffff, 1.2, 80, Math.PI / 4, 0.5);
+            spot1.position.set(-15, 25, GOAL_Z + 10);
+            spot1.castShadow = true;
+            spot1.shadow.mapSize.width = 2048; spot1.shadow.mapSize.height = 2048;
+            scene.add(spot1);
+
+            const spot2 = new THREE.SpotLight(0xa5c9ff, 1.0, 80, Math.PI / 4, 0.5);
+            spot2.position.set(15, 25, GOAL_Z - 10);
+            scene.add(spot2);
+
+            buildStadiumField();
+            buildGoalStructure();
+            buildSoccerBall();
+            buildStylizedGoalkeeper();
+            buildStylizedStriker();
+            buildTargetRing();
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // --- Realistic Grass Field Texture ---
+        function buildStadiumField() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#1e5128'; ctx.fillRect(0, 0, 512, 512);
+            
+            // Grass Stripes
+            ctx.fillStyle = '#194320';
+            for (let i = 0; i < 512; i += 64) {
+                ctx.fillRect(0, i, 512, 32);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(10, 15);
+
+            const fieldGeo = new THREE.PlaneGeometry(60, 80);
+            const fieldMat = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.7 });
+            const field = new THREE.Mesh(fieldGeo, fieldMat);
+            field.rotation.x = -Math.PI / 2;
+            field.receiveShadow = true;
+            scene.add(field);
+
+            // Penalty Spot
+            const spotGeo = new THREE.CircleGeometry(0.25, 32);
+            const spotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const spot = new THREE.Mesh(spotGeo, spotMat);
+            spot.rotation.x = -Math.PI / 2;
+            spot.position.set(0, 0.01, BALL_START_Z);
+            scene.add(spot);
+        }
+
+        // --- Goal Frame ---
+        function buildGoalStructure() {
+            const goalGroup = new THREE.Group();
+            const postMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.1, metalness: 0.1 });
+
+            const r = 0.08, w = 7.32, h = 2.44;
+
+            const lp = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 32), postMat);
+            lp.position.set(-w/2, h/2, GOAL_Z); lp.castShadow = true;
+
+            const rp = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 32), postMat);
+            rp.position.set(w/2, h/2, GOAL_Z); rp.castShadow = true;
+
+            const cb = new THREE.Mesh(new THREE.CylinderGeometry(r, r, w, 32), postMat);
+            cb.rotation.z = Math.PI / 2; cb.position.set(0, h, GOAL_Z); cb.castShadow = true;
+
+            goalGroup.add(lp, rp, cb);
+
+            const netMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, wireframe: true, transparent: true, opacity: 0.3 });
+            const net = new THREE.Mesh(new THREE.PlaneGeometry(w, h, 24, 12), netMat);
+            net.position.set(0, h/2, GOAL_Z - 1.2);
+            goalGroup.add(net);
+
+            scene.add(goalGroup);
+        }
+
+        // --- Soccer Ball ---
+        function buildSoccerBall() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 256, 256);
+            ctx.fillStyle = '#1e293b';
+            
+            // Hexagon Pattern
+            const drawHex = (x, y) => {
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = i * Math.PI / 3;
+                    ctx.lineTo(x + 20 * Math.cos(angle), y + 20 * Math.sin(angle));
+                }
+                ctx.closePath(); ctx.fill();
+            };
+            drawHex(64, 64); drawHex(192, 64); drawHex(128, 128); drawHex(64, 192); drawHex(192, 192);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const ballMat = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.25 });
+
+            ball = new THREE.Mesh(new THREE.SphereGeometry(0.28, 32, 32), ballMat);
+            ball.castShadow = true;
+            ball.position.copy(ballPos);
+            scene.add(ball);
+        }
+
+        // --- Stylized Low-Poly Goalkeeper Character ---
+        function buildStylizedGoalkeeper() {
+            goalkeeper = new THREE.Group();
+
+            const jerseyMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.4 }); // Cyan
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xffcdb2, roughness: 0.6 });
+            const shortsMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
+            const gloveMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.3 }); // Gold Gloves
+            const bootMat = new THREE.MeshStandardMaterial({ color: 0xef4444 });
+
+            // Head
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), skinMat);
+            head.position.y = 1.65; head.castShadow = true;
+
+            // Torso (Jersey)
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.65, 0.28), jerseyMat);
+            torso.position.y = 1.15; torso.castShadow = true;
+
+            // Arms & Big Gloves
+            const armGeo = new THREE.BoxGeometry(0.14, 0.45, 0.14);
+            const leftArm = new THREE.Mesh(armGeo, jerseyMat); leftArm.position.set(-0.35, 1.15, 0);
+            const rightArm = new THREE.Mesh(armGeo, jerseyMat); rightArm.position.set(0.35, 1.15, 0);
+
+            const gloveGeo = new THREE.BoxGeometry(0.22, 0.22, 0.22);
+            const leftGlove = new THREE.Mesh(gloveGeo, gloveMat); leftGlove.position.set(-0.35, 0.85, 0.05);
+            const rightGlove = new THREE.Mesh(gloveGeo, gloveMat); rightGlove.position.set(0.35, 0.85, 0.05);
+
+            goalkeeper.add(head, torso, leftArm, rightArm, leftGlove, rightGlove);
+
+            // Shorts & Legs
+            const shorts = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.28, 0.26), shortsMat);
+            shorts.position.y = 0.72;
+
+            const legGeo = new THREE.BoxGeometry(0.16, 0.55, 0.16);
+            const leftLeg = new THREE.Mesh(legGeo, skinMat); leftLeg.position.set(-0.15, 0.32, 0);
+            const rightLeg = new THREE.Mesh(legGeo, skinMat); rightLeg.position.set(0.15, 0.32, 0);
+
+            const bootGeo = new THREE.BoxGeometry(0.18, 0.12, 0.32);
+            const leftBoot = new THREE.Mesh(bootGeo, bootMat); leftBoot.position.set(-0.15, 0.06, 0.05);
+            const rightBoot = new THREE.Mesh(bootGeo, bootMat); rightBoot.position.set(0.15, 0.06, 0.05);
+
+            goalkeeper.add(shorts, leftLeg, rightLeg, leftBoot, rightBoot);
+
+            goalkeeper.traverse(child => { if(child.isMesh) child.castShadow = true; });
+            goalkeeper.position.copy(gkPos);
+            scene.add(goalkeeper);
+        }
+
+        // --- Stylized AI Striker Character ---
+        function buildStylizedStriker() {
+            striker = new THREE.Group();
+
+            const kitMat = new THREE.MeshStandardMaterial({ color: 0xef4444 }); // Red
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0x8d5524 });
+            const bootMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), skinMat);
+            head.position.y = 1.65;
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.65, 0.26), kitMat);
+            torso.position.y = 1.15;
+
+            const legGeo = new THREE.BoxGeometry(0.15, 0.6, 0.15);
+            const leftLeg = new THREE.Mesh(legGeo, skinMat); leftLeg.position.set(-0.14, 0.32, 0);
+            const rightLeg = new THREE.Mesh(legGeo, skinMat); rightLeg.position.set(0.14, 0.32, 0);
+
+            striker.add(head, torso, leftLeg, rightLeg);
+            striker.position.set(1.0, 0, BALL_START_Z + 2.5);
+            striker.rotation.y = Math.PI;
+            
+            striker.traverse(child => { if(child.isMesh) child.castShadow = true; });
+            scene.add(striker);
+        }
+
+        function buildTargetRing() {
+            const ringGeo = new THREE.RingGeometry(0.28, 0.38, 32);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe, side: THREE.DoubleSide });
+            targetRing = new THREE.Mesh(ringGeo, ringMat);
+            updateTargetVisual();
+            scene.add(targetRing);
+        }
+
+        function selectDirection(x, y, btnElement) {
+            if (isBallKicked || isRoundOver) return;
+            document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+            selectedTargetX = x; selectedTargetY = y;
+            updateTargetVisual();
+        }
+
+        function updateTargetVisual() {
+            targetRing.position.set(selectedTargetX, selectedTargetY, GOAL_Z + 0.05);
+        }
+
+        // --- Execution Sequence ---
+        function startKickSequence() {
+            if (isBallKicked || isRoundOver) return;
+            isBallKicked = true;
+
+            document.getElementById('controls-panel').style.display = 'none';
+            targetRing.visible = false;
+
+            AudioSys.playWhistle();
+
+            let runProgress = 0;
+            const runInterval = setInterval(() => {
+                runProgress += 0.08;
+                striker.position.z -= 0.16;
+                striker.position.x -= 0.05;
+
+                if (runProgress >= 1.0) {
+                    clearInterval(runInterval);
+                    executeAIShot();
+                }
+            }, 30);
+        }
+
+        function executeAIShot() {
+            AudioSys.playKick();
+
+            const randomTargets = [
+                { x: -2.8, y: 1.9 }, { x: 2.8, y: 1.9 },
+                { x: -2.3, y: 0.4 }, { x: 2.3, y: 0.4 },
+                { x: 0.0, y: 0.5 },  { x: 0.0, y: 2.0 }
+            ];
+
+            const chosen = randomTargets[Math.floor(Math.random() * randomTargets.length)];
+            const targetX = chosen.x, targetY = chosen.y;
+
+            const speed = 17.0 + Math.random() * 3.5;
+            const vz = -speed;
+            const timeToGoal = Math.abs(GOAL_Z - BALL_START_Z) / speed;
+
+            const vx = (targetX - ballPos.x) / timeToGoal;
+            const vy = (targetY - ballPos.y - (0.5 * GRAVITY * timeToGoal * timeToGoal)) / timeToGoal;
+
+            ballVel.set(vx, vy, vz);
+            executePlayerGoalkeeperDive(timeToGoal);
+        }
+
+        function executePlayerGoalkeeperDive(timeToGoal) {
+            isGkDiving = true;
+            const gkJumpVx = (selectedTargetX - gkPos.x) / (timeToGoal * 0.85);
+            const gkJumpVy = Math.max((selectedTargetY - gkPos.y) * 2.2 + 3.0, 2.5);
+            gkVel.set(gkJumpVx, gkJumpVy, 0);
+        }
+
+        // --- Physics Engine Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = 0.016;
+
+            if (isBallKicked) updateBallPhysics(dt);
+            if (isGkDiving) updateGoalkeeperPhysics(dt);
+            if (isBallKicked && !isRoundOver) checkCollisions();
+
+            renderer.render(scene, camera);
+        }
+
+        function updateBallPhysics(dt) {
+            ballVel.y += GRAVITY * dt;
+            ballPos.addScaledVector(ballVel, dt);
+
+            if (ballPos.y <= 0.28) {
+                ballPos.y = 0.28;
+                ballVel.y = -ballVel.y * 0.35;
+                ballVel.x *= 0.75; ballVel.z *= 0.75;
+            }
+
+            ball.rotation.x += ballVel.z * dt * 0.2;
+            ball.position.copy(ballPos);
+
+            if (ballPos.z < GOAL_Z - 2.0 && !isRoundOver) {
+                evaluateShot(false, "CONCEDED!");
+            }
+        }
+
+        function updateGoalkeeperPhysics(dt) {
+            gkVel.y += GRAVITY * dt;
+            gkPos.x += gkVel.x * dt; gkPos.y += gkVel.y * dt;
+
+            gkPos.x = Math.max(-3.8, Math.min(gkPos.x, 3.8));
+
+            if (gkPos.y <= 0.0) {
+                gkPos.y = 0.0; gkVel.y = 0; gkVel.x *= 0.8;
+            }
+
+            goalkeeper.position.copy(gkPos);
+            if (gkPos.y > 0.05) {
+                goalkeeper.rotation.z = -gkVel.x * 0.14;
+            } else {
+                goalkeeper.rotation.z *= 0.8;
+            }
+        }
+
+        function checkCollisions() {
+            const gkCenter = goalkeeper.position.clone().add(new THREE.Vector3(0, 0.9, 0));
+            if (ballPos.distanceTo(gkCenter) < 1.15) {
+                AudioSys.playSave();
+                ballVel.z = -ballVel.z * 0.5;
+                ballVel.x += (Math.random() - 0.5) * 5.0;
+                ballVel.y = Math.abs(ballVel.y) * 0.5 + 2.0;
+                evaluateShot(true, "GREAT SAVE!!");
+                return;
+            }
+
+            const w = 7.32, h = 2.44;
+            if (Math.abs(ballPos.z - GOAL_Z) < 0.3) {
+                if (Math.abs(ballPos.x) < w/2 - 0.2 && ballPos.y > 0.3 && ballPos.y < h - 0.2) {
+                    evaluateShot(false, "GOAL CONCEDED!");
+                }
+            }
+        }
+
+        function evaluateShot(isSave) {
+            isRoundOver = true;
+            if (isSave) {
+                score++;
+                document.getElementById('score').innerText = score;
+            }
+            attemptsHistory.push(isSave);
+            updateAttemptsUI();
+
+            setTimeout(() => {
+                currentAttempt++;
+                if (currentAttempt < maxAttempts) {
+                    resetRound();
+                } else {
+                    endGame();
+                }
+            }, 2200);
+        }
+
+        function updateAttemptsUI() {
+            const dots = document.getElementById('attempts-container').getElementsByClassName('dot');
+            for (let i = 0; i < attemptsHistory.length; i++) {
+                dots[i].className = attemptsHistory[i] ? 'dot save' : 'dot conceded';
+            }
+        }
+
+        function resetRound() {
+            ballPos.set(0, 0.28, BALL_START_Z);
+            ballVel.set(0, 0, 0);
+            ball.position.copy(ballPos);
+
+            gkPos.set(0, 0, GOAL_Z + 0.4);
+            gkVel.set(0, 0, 0);
+            goalkeeper.position.copy(gkPos);
+            goalkeeper.rotation.set(0, 0, 0);
+
+            striker.position.set(1.0, 0, BALL_START_Z + 2.5);
+
+            isBallKicked = false; isGkDiving = false; isRoundOver = false;
+            targetRing.visible = true;
+            updateTargetVisual();
+
+            document.getElementById('controls-panel').style.display = 'flex';
+        }
+
+        function endGame() {
+            const modal = document.getElementById('result-modal');
+            document.getElementById('result-title').innerText = score >= 3 ? "SUPER SAVER! 🏆" : "GAME OVER ⚽";
+            document.getElementById('result-desc').innerText = `คุณเซฟได้ทั้งหมด ${score} จาก ${maxAttempts} ประตู!`;
+            modal.classList.add('active');
+        }
+
+        function resetGame() {
+            score = 0; currentAttempt = 0; attemptsHistory = [];
+            document.getElementById('score').innerText = '0';
+            const dots = document.getElementById('attempts-container').getElementsByClassName('dot');
+            for (let i = 0; i < dots.length; i++) dots[i].className = 'dot';
+            document.getElementById('result-modal').classList.remove('active');
+            resetRound();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    </script>
+</body>
+</html>
