@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anti-Aircraft Gun Defense</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ภาพพื้นหลังฉากเกมเต็มจอ -->
+    <img id="game-bg" src="pic2.png" alt="Background">
+
+    <!-- พื้นที่แสดงผลเกม 3D สามมิติ -->
+    <div id="canvas-container"></div>
+    <div id="screen-flash"></div>
+
+    <!-- UI หน้าจอควบคุมและเรดาร์ -->
+    <div id="hud-container">
+        <div class="hud-box" id="score-box">SCORE: <span id="score-val">0</span></div>
+        <div class="hud-box" id="lives-box">LIVES: <span id="lives-val">❤️❤️❤️</span></div>
+        <div class="hud-box" id="missile-box">MISSILES: <span id="missile-val">3</span> / 3</div>
+
+        <div id="crosshair"></div>
+
+        <div id="radar-container">
+            <canvas id="radar-canvas" width="130" height="130"></canvas>
+        </div>
+
+        <div class="control-hint">
+            [ A / D ] เล็งซ้าย-ขวา | [CLICK] ยิงปืนกล | [SPACEBAR] ยิงมิสไซล์ 🚀
+        </div>
+    </div>
+
+    <!-- หน้าต่าง Game Over -->
+    <div id="game-over-modal" class="modal">
+        <div class="modal-content">
+            <h2>ฐานถูกทำลาย! (GAME OVER)</h2>
+            <p id="final-score">คะแนนป้องกันฐานของคุณ: 0</p>
+            <button onclick="restartGame()">เล่นใหม่อีกครั้ง</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

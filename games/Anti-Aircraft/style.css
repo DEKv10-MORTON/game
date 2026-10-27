@@ -1,0 +1,180 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #020617;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* ภาพพื้นหลังฉากเกมเต็มจอ */
+#game-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    object-position: 50% 65%;
+    z-index: 1;
+    transition: object-position 0.05s linear;
+}
+
+/* พื้นที่ Canvas 3D โปร่งใสและอยู่เหนือภาพพื้นหลัง */
+#canvas-container {
+    width: 100vw;
+    height: 100vw;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+#screen-flash {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 3;
+    transition: background-color 0.2s ease;
+}
+
+/* กรอบ UI และ HUD ต่างๆ ของเกม */
+#hud-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.hud-box {
+    position: absolute;
+    background: rgba(2, 6, 23, 0.85);
+    border: 2px solid #38bdf8;
+    color: #38bdf8;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    border-radius: 6px;
+}
+
+#score-box {
+    top: 20px;
+    left: 30px;
+}
+
+#lives-box {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-color: #f43f5e;
+    color: #f43f5e;
+}
+
+#missile-box {
+    top: 20px;
+    right: 30px;
+}
+
+#crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    border: 3px solid #facc15;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #facc15;
+}
+
+#crosshair::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    background-color: #f43f5e;
+    border-radius: 50%;
+}
+
+#radar-container {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    width: 130px;
+    height: 130px;
+    border: 2px solid #38bdf8;
+    border-radius: 50%;
+    background: rgba(2, 20, 10, 0.9);
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    overflow: hidden;
+}
+
+.control-hint {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(2, 6, 23, 0.8);
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+/* Modal Game Over */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #0f172a;
+    border: 2px solid #f43f5e;
+    padding: 30px 50px;
+    text-align: center;
+    color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 25px rgba(244, 63, 94, 0.5);
+}
+
+.modal-content button {
+    margin-top: 20px;
+    background: #f43f5e;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.modal-content button:hover {
+    background: #e11d48;
+}
