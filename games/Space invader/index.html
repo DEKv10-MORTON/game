@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Space Invaders: Neon Strike</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #05050d;
+            color: #ffffff;
+            overflow: hidden;
+            touch-action: none;
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .neon-text-blue {
+            text-shadow: 0 0 8px rgba(59, 130, 246, 0.8), 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        .neon-text-pink {
+            text-shadow: 0 0 8px rgba(236, 72, 153, 0.8), 0 0 20px rgba(236, 72, 153, 0.5);
+        }
+        .neon-box {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3), inset 0 0 15px rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+        }
+        canvas {
+            display: block;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+        }
+        /* Touch button active feedback */
+        .touch-btn:active {
+            transform: scale(0.92);
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-between p-2 sm:p-4 select-none">
+
+    <!-- Top Navigation / Header -->
+    <header class="w-full max-w-4xl flex items-center justify-between px-3 py-2 bg-slate-900/80 backdrop-blur border border-slate-800 rounded-xl mb-2 z-10">
+        <div class="flex items-center gap-2 sm:gap-4">
+            <h1 class="text-xl sm:text-2xl font-black font-orbitron tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">
+                NEON INVADERS
+            </h1>
+            <span id="wave-badge" class="px-2 py-0.5 text-xs font-bold font-orbitron bg-cyan-950 text-cyan-400 border border-cyan-500/40 rounded-full">
+                WAVE 1
+            </span>
+        </div>
+
+        <!-- HUD: Score and Highscore -->
+        <div class="flex items-center gap-4 sm:gap-8 font-orbitron text-sm sm:text-base">
+            <div>
+                <span class="text-slate-400 text-xs block">SCORE</span>
+                <span id="score-val" class="text-cyan-400 font-bold text-lg sm:text-xl">00000</span>
+            </div>
+            <div>
+                <span class="text-slate-400 text-xs block">HIGH</span>
+                <span id="high-val" class="text-fuchsia-400 font-bold text-lg sm:text-xl">00000</span>
+            </div>
+            <!-- Audio Toggle -->
+            <button id="sound-btn" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 transition-colors">
+                <svg id="sound-icon-on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+                <svg id="sound-icon-off" class="w-5 h-5 hidden text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Canvas Container -->
+    <main class="relative flex-1 w-full max-w-4xl flex items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-black/60 backdrop-blur-md">
+        <canvas id="gameCanvas" class="w-full h-full rounded-2xl"></canvas>
+
+        <!-- Overlay: Start Screen -->
+        <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/85 p-6 text-center z-20">
+            <h2 class="text-4xl sm:text-6xl font-black font-orbitron mb-2 tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-yellow-400 neon-text-blue">
+                SPACE INVADERS
+            </h2>
+            <p class="text-slate-400 text-sm sm:text-base mb-8 max-w-md">
+                Defend the galaxy from oncoming alien waves. Grab power-ups, dodge enemy lasers, and beat the high score!
+            </p>
+            
+            <button id="start-btn" class="px-8 py-3 text-lg font-bold font-orbitron text-black bg-cyan-400 hover:bg-cyan-300 rounded-full shadow-[0_0_20px_rgba(34,211,238,0.6)] transition-all transform hover:scale-105 active:scale-95 mb-6">
+                START DEFENSE
+            </button>
+
+            <!-- Quick Instructions -->
+            <div class="grid grid-cols-2 gap-4 text-xs text-slate-400 font-orbitron max-w-xs text-left">
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                    <span class="text-cyan-400 block font-bold mb-1">CONTROLS</span>
+                    <p>Move: <span class="text-white">A / D or ◄ / ►</span></p>
+                    <p>Fire: <span class="text-white">SPACE</span></p>
+                    <p>Pause: <span class="text-white">P / ESC</span></p>
+                </div>
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                    <span class="text-fuchsia-400 block font-bold mb-1">POWERUPS</span>
+                    <p>⚡ Triple Shot</p>
+                    <p>🛡️ Energy Shield</p>
+                    <p>🚀 Laser Beam</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay: Pause Screen -->
+        <div id="pause-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm hidden z-20">
+            <h2 class="text-3xl sm:text-5xl font-black font-orbitron text-cyan-400 tracking-wider mb-4 neon-text-blue">
+                GAME PAUSED
+            </h2>
+            <p class="text-slate-400 font-orbitron text-sm mb-6">Press P or ESC to Resume</p>
+            <button id="resume-btn" class="px-6 py-2.5 font-bold font-orbitron bg-slate-800 hover:bg-slate-700 border border-cyan-500/50 rounded-xl text-cyan-400">
+                RESUME GAME
+            </button>
+        </div>
+
+        <!-- Overlay: Game Over Screen -->
+        <div id="gameover-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 p-6 hidden z-20">
+            <h2 class="text-4xl sm:text-6xl font-black font-orbitron text-red-500 tracking-wider mb-2 neon-text-pink">
+                GAME OVER
+            </h2>
+            <p id="final-stats" class="text-slate-300 font-orbitron text-sm sm:text-base mb-6">
+                Score: <span id="final-score" class="text-cyan-400 font-bold">0</span> | Wave: <span id="final-wave" class="text-fuchsia-400 font-bold">1</span>
+            </p>
+            <button id="restart-btn" class="px-8 py-3 font-bold font-orbitron text-black bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:from-fuchsia-400 hover:to-pink-400 rounded-full shadow-[0_0_20px_rgba(236,72,153,0.6)] transition-all transform hover:scale-105 active:scale-95">
+                TRY AGAIN
+            </button>
+        </div>
+    </main>
+
+    <!-- On-screen Touch Controls (Mobile Friendly) -->
+    <footer class="w-full max-w-4xl flex items-center justify-between px-2 py-3 mt-2 gap-2 z-10 sm:hidden">
+        <div class="flex gap-2">
+            <button id="btn-left" class="touch-btn w-16 h-14 bg-slate-900/90 border border-cyan-500/30 rounded-xl flex items-center justify-center text-cyan-400 text-2xl font-bold">
+                ◄
+            </button>
+            <button id="btn-right" class="touch-btn w-16 h-14 bg-slate-900/90 border border-cyan-500/30 rounded-xl flex items-center justify-center text-cyan-400 text-2xl font-bold">
+                ►
+            </button>
+        </div>
+        <button id="btn-fire" class="touch-btn flex-1 h-14 bg-gradient-to-r from-cyan-500/20 to-fuchsia-500/20 border border-fuchsia-500/40 rounded-xl flex items-center justify-center text-fuchsia-400 font-orbitron font-bold text-lg">
+            FIRE
+        </button>
+    </footer>
+
+    <!-- Game Logic Script -->
+    <script>
+        // --- AUDIO SYSTEM (Web Audio API Synthesizer) ---
+        class SoundSystem {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            }
+
+            playShoot() {
+                if (this.muted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            }
+
+            playExplosion() {
+                if (this.muted || !this.ctx) return;
+                const bufferSize = this.ctx.sampleRate * 0.2;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(800, this.ctx.currentTime);
+                filter.frequency.linearRampToValueAtTime(50, this.ctx.currentTime + 0.2);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start();
+            }
+
+            playPowerup() {
+                if (this.muted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(900, this.ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.2);
+            }
+
+            playUfo() {
+                if (this.muted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(600, this.ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.1);
+            }
+
+            playGameOver() {
+                if (this.muted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(80, this.ctx.currentTime + 0.6);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.6);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.6);
+            }
+        }
+
+        const audio = new SoundSystem();
+
+        // --- GAME CONSTANTS & CONFIG ---
+        const CANVAS_WIDTH = 800;
+        const CANVAS_HEIGHT = 600;
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Internal logical resolution setup
+        canvas.width = CANVAS_WIDTH;
+        canvas.height = CANVAS_HEIGHT;
+
+        // UI Element References
+        const startScreen = document.getElementById('start-screen');
+        const pauseScreen = document.getElementById('pause-screen');
+        const gameoverScreen = document.getElementById('gameover-screen');
+        const scoreVal = document.getElementById('score-val');
+        const highVal = document.getElementById('high-val');
+        const waveBadge = document.getElementById('wave-badge');
+        const finalScore = document.getElementById('final-score');
+        const finalWave = document.getElementById('final-wave');
+        const soundBtn = document.getElementById('sound-btn');
+        const soundIconOn = document.getElementById('sound-icon-on');
+        const soundIconOff = document.getElementById('sound-icon-off');
+
+        // Keyboard State Trackers
+        const keys = {
+            left: false,
+            right: false,
+            fire: false
+        };
+
+        // --- GAME ENGINE STATE ---
+        let gameState = 'START'; // 'START', 'PLAYING', 'PAUSED', 'GAMEOVER'
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('space_invaders_hi') || '0', 10);
+        let wave = 1;
+
+        highVal.textContent = String(highScore).padStart(5, '0');
+
+        // Starfield Particles
+        const stars = Array.from({ length: 70 }, () => ({
+            x: Math.random() * CANVAS_WIDTH,
+            y: Math.random() * CANVAS_HEIGHT,
+            size: Math.random() * 2 + 0.5,
+            speed: Math.random() * 1.5 + 0.2,
+            alpha: Math.random() * 0.8 + 0.2
+        }));
+
+        // Explosions & Visual Effects Particles
+        let particles = [];
+
+        // Projectiles
+        let playerBullets = [];
+        let invaderBullets = [];
+
+        // Active Power-ups on screen
+        let powerups = [];
+
+        // UFO Object
+        let ufo = null;
+        let ufoTimer = 0;
+
+        // --- PLAYER SPACESHIP ---
+        class Player {
+            constructor() {
+                this.width = 44;
+                this.height = 28;
+                this.x = CANVAS_WIDTH / 2 - this.width / 2;
+                this.y = CANVAS_HEIGHT - 65;
+                this.speed = 6;
+                this.lives = 3;
+                this.maxLives = 5;
+                this.shield = 0; // Shield duration frames
+                this.tripleShotTimer = 0;
+                this.laserTimer = 0;
+                this.tilt = 0; // Visual tilt when moving
+                this.lastShotTime = 0;
+                this.fireRate = 180; // ms between shots
+            }
+
+            update() {
+                // Movement
+                if (keys.left) {
+                    this.x -= this.speed;
+                    this.tilt = Math.max(this.tilt - 0.1, -0.3);
+                } else if (keys.right) {
+                    this.x += this.speed;
+                    this.tilt = Math.min(this.tilt + 0.1, 0.3);
+                } else {
+                    this.tilt *= 0.8;
+                }
+
+                // Boundaries
+                this.x = Math.max(10, Math.min(CANVAS_WIDTH - this.width - 10, this.x));
+
+                // Active Buff Timers
+                if (this.shield > 0) this.shield--;
+                if (this.tripleShotTimer > 0) this.tripleShotTimer--;
+                if (this.laserTimer > 0) this.laserTimer--;
+
+                // Auto-firing / Trigger handling
+                if (keys.fire) {
+                    this.shoot();
+                }
+            }
+
+            shoot() {
+                const now = Date.now();
+                if (now - this.lastShotTime < this.fireRate) return;
+                this.lastShotTime = now;
+
+                audio.playShoot();
+
+                if (this.tripleShotTimer > 0) {
+                    // Triple Spread Bullet
+                    playerBullets.push(new Bullet(this.x + this.width / 2, this.y, 0, -9, '#00f0ff'));
+                    playerBullets.push(new Bullet(this.x + 10, this.y + 5, -2, -8.5, '#00f0ff'));
+                    playerBullets.push(new Bullet(this.x + this.width - 10, this.y + 5, 2, -8.5, '#00f0ff'));
+                } else if (this.laserTimer > 0) {
+                    // Heavy Laser Beam Bullet
+                    playerBullets.push(new Bullet(this.x + this.width / 2 - 3, this.y, 0, -14, '#ff0055', 6, 20));
+                } else {
+                    // Standard Laser
+                    playerBullets.push(new Bullet(this.x + this.width / 2, this.y, 0, -10, '#00f0ff'));
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                ctx.rotate(this.tilt);
+
+                // Shield Glow effect
+                if (this.shield > 0) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 32, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+                    ctx.strokeStyle = '#00f0ff';
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#00f0ff';
+                    ctx.fill();
+                    ctx.stroke();
+                }
+
+                // Thruster Flame effect
+                ctx.beginPath();
+                ctx.moveTo(-6, 14);
+                ctx.lineTo(0, 22 + Math.random() * 6);
+                ctx.lineTo(6, 14);
+                ctx.fillStyle = '#ffaa00';
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = '#ff4400';
+                ctx.fill();
+
+                // Neon Spaceship Body
+                ctx.beginPath();
+                ctx.moveTo(0, -16);
+                ctx.lineTo(18, 12);
+                ctx.lineTo(8, 10);
+                ctx.lineTo(0, 14);
+                ctx.lineTo(-8, 10);
+                ctx.lineTo(-18, 12);
+                ctx.closePath();
+
+                ctx.fillStyle = '#0d1b2a';
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#00f0ff';
+                ctx.fill();
+                ctx.stroke();
+
+                // Cockpit Core
+                ctx.beginPath();
+                ctx.arc(0, -2, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff0077';
+                ctx.shadowColor = '#ff0077';
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        const player = new Player();
+
+        // --- BULLETS & PROJECTILES ---
+        class Bullet {
+            constructor(x, y, vx, vy, color, width = 3, height = 10) {
+                this.x = x - width / 2;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.width = width;
+                this.height = height;
+                this.markedForDeletion = false;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.y < -20 || this.y > CANVAS_HEIGHT + 20 || this.x < 0 || this.x > CANVAS_WIDTH) {
+                    this.markedForDeletion = true;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.restore();
+            }
+        }
+
+        // --- INVADER FLEET ---
+        class Invader {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.width = 34;
+                this.height = 24;
+                this.type = type; // 1: Scout, 2: Striker, 3: Commander
+                this.markedForDeletion = false;
+                this.animFrame = 0;
+
+                // Set characteristics by Type
+                if (type === 3) {
+                    this.color = '#ff0077';
+                    this.scoreValue = 30;
+                } else if (type === 2) {
+                    this.color = '#bf00ff';
+                    this.scoreValue = 20;
+                } else {
+                    this.color = '#00f0ff';
+                    this.scoreValue = 10;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = this.color;
+
+                const t = this.type;
+                const f = Math.floor(Date.now() / 300) % 2 === 0; // Simple sprite animation frame toggle
+
+                ctx.beginPath();
+                if (t === 3) { // Commander (Top row)
+                    ctx.arc(0, -2, 8, Math.PI, 0);
+                    ctx.rect(-12, -2, 24, 8);
+                    ctx.rect(f ? -14 : -10, 6, 6, 6);
+                    ctx.rect(f ? 8 : 4, 6, 6, 6);
+                } else if (t === 2) { // Striker (Middle rows)
+                    ctx.rect(-10, -8, 20, 14);
+                    ctx.rect(f ? -14 : -12, -4, 4, 10);
+                    ctx.rect(f ? 10 : 8, -4, 4, 10);
+                } else { // Scout (Bottom rows)
+                    ctx.rect(-8, -6, 16, 12);
+                    ctx.moveTo(-12, 6);
+                    ctx.lineTo(-4, 0);
+                    ctx.lineTo(4, 0);
+                    ctx.lineTo(12, 6);
+                }
+                ctx.fill();
+
+                // Eyes
+                ctx.fillStyle = '#05050d';
+                ctx.fillRect(-5, -3, 3, 3);
+                ctx.fillRect(2, -3, 3, 3);
+
+                ctx.restore();
+            }
+        }
+
+        class InvaderFleet {
+            constructor() {
+                this.invaders = [];
+                this.direction = 1; // 1 Right, -1 Left
+                this.speed = 1;
+                this.dropDistance = 16;
+                this.moveTimer = 0;
+                this.fireRate = 0.015; // Chance per frame to shoot
+            }
+
+            init(waveLevel) {
+                this.invaders = [];
+                const rows = 5;
+                const cols = 9;
+                const spacingX = 48;
+                const spacingY = 36;
+                const offsetX = (CANVAS_WIDTH - (cols * spacingX)) / 2;
+                const offsetY = 70;
+
+                this.speed = 0.8 + (waveLevel * 0.25);
+
+                for (let r = 0; r < rows; r++) {
+                    let type = 1;
+                    if (r === 0) type = 3;
+                    else if (r === 1 || r === 2) type = 2;
+
+                    for (let c = 0; c < cols; c++) {
+                        const x = offsetX + c * spacingX;
+                        const y = offsetY + r * spacingY;
+                        this.invaders.push(new Invader(x, y, type));
+                    }
+                }
+            }
+
+            update() {
+                let hitWall = false;
+                const currentSpeed = this.speed * (1 + (45 - this.invaders.length) * 0.035); // Accelerate as fleet shrinks
+
+                for (let invader of this.invaders) {
+                    invader.x += currentSpeed * this.direction;
+                    if (invader.x <= 15 || invader.x + invader.width >= CANVAS_WIDTH - 15) {
+                        hitWall = true;
+                    }
+                }
+
+                if (hitWall) {
+                    this.direction *= -1;
+                    for (let invader of this.invaders) {
+                        invader.y += this.dropDistance;
+                        // Game Over Check if Invaders reach player height
+                        if (invader.y + invader.height >= player.y - 10) {
+                            triggerGameOver();
+                        }
+                    }
+                }
+
+                // Random Attacks from bottom-most invaders
+                if (Math.random() < this.fireRate && this.invaders.length > 0) {
+                    const randomInvader = this.invaders[Math.floor(Math.random() * this.invaders.length)];
+                    invaderBullets.push(new Bullet(
+                        randomInvader.x + randomInvader.width / 2,
+                        randomInvader.y + randomInvader.height,
+                        0,
+                        4.5 + wave * 0.3,
+                        '#ff0055'
+                    ));
+                }
+            }
+
+            draw() {
+                for (let invader of this.invaders) {
+                    invader.draw();
+                }
+            }
+        }
+
+        const fleet = new InvaderFleet();
+
+        // --- MYSTERY UFO ---
+        class UFO {
+            constructor() {
+                this.width = 50;
+                this.height = 20;
+                this.x = -this.width;
+                this.y = 45;
+                this.speed = 3;
+                this.markedForDeletion = false;
+                this.scoreValue = Math.floor(Math.random() * 3 + 1) * 100;
+            }
+
+            update() {
+                this.x += this.speed;
+                if (this.x > CANVAS_WIDTH + this.width) {
+                    this.markedForDeletion = true;
+                }
+                if (Math.random() < 0.1) audio.playUfo();
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+
+                // Glow Saucer Shape
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 22, 8, 0, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffaa00';
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = '#ffaa00';
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(0, -4, 10, Math.PI, 0);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        // --- POWER-UPS ---
+        class PowerUp {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type; // 'TRIPLE', 'SHIELD', 'LASER', 'LIFE'
+                this.radius = 12;
+                this.vy = 2;
+                this.markedForDeletion = false;
+
+                if (type === 'TRIPLE') this.color = '#00f0ff';
+                else if (type === 'SHIELD') this.color = '#3b82f6';
+                else if (type === 'LASER') this.color = '#ff0055';
+                else this.color = '#22c55e';
+            }
+
+            update() {
+                this.y += this.vy;
+                if (this.y > CANVAS_HEIGHT + 20) this.markedForDeletion = true;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(5, 5, 13, 0.8)';
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '10px Orbitron';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                let symbol = '⚡';
+                if (this.type === 'SHIELD') symbol = '🛡️';
+                if (this.type === 'LASER') symbol = '🚀';
+                if (this.type === 'LIFE') symbol = '❤️';
+                ctx.fillText(symbol, this.x, this.y);
+
+                ctx.restore();
+            }
+        }
+
+        // --- PARTICLE EFFECTS ---
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 3 + 1;
+                this.vx = (Math.random() - 0.5) * 6;
+                this.vy = (Math.random() - 0.5) * 6;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.03 + 0.015;
+                this.markedForDeletion = false;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.decay;
+                if (this.alpha <= 0) this.markedForDeletion = true;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createExplosion(x, y, color, count = 15) {
+            audio.playExplosion();
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // --- COLLISION LOGIC ---
+        function checkCollisions() {
+            // Player Bullets hitting Invaders
+            for (let b of playerBullets) {
+                if (b.markedForDeletion) continue;
+
+                for (let invader of fleet.invaders) {
+                    if (invader.markedForDeletion) continue;
+
+                    if (
+                        b.x < invader.x + invader.width &&
+                        b.x + b.width > invader.x &&
+                        b.y < invader.y + invader.height &&
+                        b.y + b.height > invader.y
+                    ) {
+                        b.markedForDeletion = true;
+                        invader.markedForDeletion = true;
+                        score += invader.scoreValue;
+                        scoreVal.textContent = String(score).padStart(5, '0');
+                        createExplosion(invader.x + invader.width / 2, invader.y + invader.height / 2, invader.color);
+
+                        // Chance to drop powerup
+                        if (Math.random() < 0.12) {
+                            const types = ['TRIPLE', 'SHIELD', 'LASER', 'LIFE'];
+                            const chosen = types[Math.floor(Math.random() * types.length)];
+                            powerups.push(new PowerUp(invader.x + invader.width / 2, invader.y, chosen));
+                        }
+                        break;
+                    }
+                }
+
+                // Bullet hitting UFO
+                if (ufo && !ufo.markedForDeletion && !b.markedForDeletion) {
+                    if (
+                        b.x < ufo.x + ufo.width &&
+                        b.x + b.width > ufo.x &&
+                        b.y < ufo.y + ufo.height &&
+                        b.y + b.height > ufo.y
+                    ) {
+                        b.markedForDeletion = true;
+                        ufo.markedForDeletion = true;
+                        score += ufo.scoreValue;
+                        scoreVal.textContent = String(score).padStart(5, '0');
+                        createExplosion(ufo.x + ufo.width / 2, ufo.y + ufo.height / 2, '#ffaa00', 25);
+                    }
+                }
+            }
+
+            // Invader Bullets hitting Player
+            for (let b of invaderBullets) {
+                if (b.markedForDeletion) continue;
+
+                if (
+                    b.x < player.x + player.width &&
+                    b.x + b.width > player.x &&
+                    b.y < player.y + player.height &&
+                    b.y + b.height > player.y
+                ) {
+                    b.markedForDeletion = true;
+                    if (player.shield > 0) {
+                        // Shield blocks damage
+                        createExplosion(player.x + player.width / 2, player.y, '#00f0ff', 8);
+                    } else {
+                        player.lives--;
+                        createExplosion(player.x + player.width / 2, player.y + player.height / 2, '#ff0055', 20);
+                        if (player.lives <= 0) {
+                            triggerGameOver();
+                        }
+                    }
+                }
+            }
+
+            // Player collecting Power-ups
+            for (let p of powerups) {
+                if (p.markedForDeletion) continue;
+
+                const dist = Math.hypot((player.x + player.width / 2) - p.x, (player.y + player.height / 2) - p.y);
+                if (dist < p.radius + player.width / 2) {
+                    p.markedForDeletion = true;
+                    audio.playPowerup();
+
+                    if (p.type === 'TRIPLE') player.tripleShotTimer = 360; // ~6 seconds
+                    else if (p.type === 'SHIELD') player.shield = 400; // ~6.5 seconds
+                    else if (p.type === 'LASER') player.laserTimer = 300;
+                    else if (p.type === 'LIFE') player.lives = Math.min(player.lives + 1, player.maxLives);
+                }
+            }
+        }
+
+        // --- HUD HUD OVERLAY DRAWING ---
+        function drawHUD() {
+            // Draw Player Lives as sleek glowing icons
+            for (let i = 0; i < player.lives; i++) {
+                ctx.save();
+                ctx.translate(25 + i * 28, CANVAS_HEIGHT - 20);
+                ctx.beginPath();
+                ctx.moveTo(0, -8);
+                ctx.lineTo(8, 6);
+                ctx.lineTo(-8, 6);
+                ctx.closePath();
+                ctx.fillStyle = '#00f0ff';
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = '#00f0ff';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Active Power-up status indicators
+            let statusY = CANVAS_HEIGHT - 45;
+            if (player.shield > 0) {
+                drawBuffBar('SHIELD', player.shield / 400, '#3b82f6', statusY);
+                statusY -= 14;
+            }
+            if (player.tripleShotTimer > 0) {
+                drawBuffBar('TRIPLE', player.tripleShotTimer / 360, '#00f0ff', statusY);
+                statusY -= 14;
+            }
+            if (player.laserTimer > 0) {
+                drawBuffBar('BEAM', player.laserTimer / 300, '#ff0055', statusY);
+            }
+        }
+
+        function drawBuffBar(label, ratio, color, y) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = color;
+            ctx.font = '10px Orbitron';
+            ctx.fillText(label, 20, y);
+            ctx.fillRect(70, y - 8, 80 * ratio, 6);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.strokeRect(70, y - 8, 80, 6);
+            ctx.restore();
+        }
+
+        // --- STARFIELD BACKGROUND ---
+        function updateAndDrawStars() {
+            ctx.save();
+            for (let s of stars) {
+                s.y += s.speed;
+                if (s.y > CANVAS_HEIGHT) s.y = 0;
+
+                ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+                ctx.fillRect(s.x, s.y, s.size, s.size);
+            }
+            ctx.restore();
+        }
+
+        // --- GAME LOOP ---
+        function gameLoop() {
+            // Clear Frame
+            ctx.fillStyle = '#05050d';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Render Dynamic Background Starfield
+            updateAndDrawStars();
+
+            if (gameState === 'PLAYING') {
+                // Spawn Random Bonus UFO
+                ufoTimer++;
+                if (ufoTimer > 700 && !ufo) {
+                    if (Math.random() < 0.4) {
+                        ufo = new UFO();
+                    }
+                    ufoTimer = 0;
+                }
+
+                // Update Logic
+                player.update();
+                fleet.update();
+
+                if (ufo) {
+                    ufo.update();
+                    if (ufo.markedForDeletion) ufo = null;
+                }
+
+                // Update Projectiles
+                playerBullets.forEach(b => b.update());
+                invaderBullets.forEach(b => b.update());
+                powerups.forEach(p => p.update());
+                particles.forEach(p => p.update());
+
+                // Filter out destroyed/offscreen entities
+                playerBullets = playerBullets.filter(b => !b.markedForDeletion);
+                invaderBullets = invaderBullets.filter(b => !b.markedForDeletion);
+                powerups = powerups.filter(p => !p.markedForDeletion);
+                particles = particles.filter(p => !p.markedForDeletion);
+
+                fleet.invaders = fleet.invaders.filter(i => !i.markedForDeletion);
+
+                // Check Wave Completion
+                if (fleet.invaders.length === 0) {
+                    wave++;
+                    waveBadge.textContent = `WAVE ${wave}`;
+                    fleet.init(wave);
+                }
+
+                // Collisions Check
+                checkCollisions();
+            }
+
+            // Render Entities
+            if (gameState === 'PLAYING' || gameState === 'PAUSED') {
+                player.draw();
+                fleet.draw();
+                if (ufo) ufo.draw();
+                playerBullets.forEach(b => b.draw());
+                invaderBullets.forEach(b => b.draw());
+                powerups.forEach(p => p.draw());
+                particles.forEach(p => p.draw());
+                drawHUD();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- GAME CONTROL FUNCTIONS ---
+        function startGame() {
+            audio.init();
+            score = 0;
+            wave = 1;
+            scoreVal.textContent = '00000';
+            waveBadge.textContent = 'WAVE 1';
+            player.lives = 3;
+            player.shield = 0;
+            player.tripleShotTimer = 0;
+            player.laserTimer = 0;
+            playerBullets = [];
+            invaderBullets = [];
+            powerups = [];
+            particles = [];
+            ufo = null;
+
+            fleet.init(wave);
+
+            startScreen.classList.add('hidden');
+            pauseScreen.classList.add('hidden');
+            gameoverScreen.classList.add('hidden');
+
+            gameState = 'PLAYING';
+        }
+
+        function togglePause() {
+            if (gameState === 'PLAYING') {
+                gameState = 'PAUSED';
+                pauseScreen.classList.remove('hidden');
+            } else if (gameState === 'PAUSED') {
+                gameState = 'PLAYING';
+                pauseScreen.classList.add('hidden');
+            }
+        }
+
+        function triggerGameOver() {
+            gameState = 'GAMEOVER';
+            audio.playGameOver();
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('space_invaders_hi', highScore.toString());
+                highVal.textContent = String(highScore).padStart(5, '0');
+            }
+
+            finalScore.textContent = score;
+            finalWave.textContent = wave;
+            gameoverScreen.classList.remove('hidden');
+        }
+
+        // --- EVENT LISTENERS (Keyboard & Controls) ---
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+            if (e.code === 'Space') keys.fire = true;
+            if (e.code === 'KeyP' || e.code === 'Escape') togglePause();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+            if (e.code === 'Space') keys.fire = false;
+        });
+
+        // Mobile On-screen Buttons
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnFire = document.getElementById('btn-fire');
+
+        const bindTouch = (elem, onStart, onEnd) => {
+            elem.addEventListener('touchstart', (e) => { e.preventDefault(); onStart(); });
+            elem.addEventListener('touchend', (e) => { e.preventDefault(); onEnd(); });
+            elem.addEventListener('mousedown', () => onStart());
+            elem.addEventListener('mouseup', () => onEnd());
+        };
+
+        bindTouch(btnLeft, () => keys.left = true, () => keys.left = false);
+        bindTouch(btnRight, () => keys.right = true, () => keys.right = false);
+        bindTouch(btnFire, () => { keys.fire = true; audio.init(); }, () => keys.fire = false);
+
+        // UI Button Handlers
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('resume-btn').addEventListener('click', togglePause);
+        document.getElementById('restart-btn').addEventListener('click', startGame);
+
+        // Mute / Unmute Toggle
+        soundBtn.addEventListener('click', () => {
+            audio.init();
+            audio.muted = !audio.muted;
+            if (audio.muted) {
+                soundIconOn.classList.add('hidden');
+                soundIconOff.classList.remove('hidden');
+            } else {
+                soundIconOn.classList.remove('hidden');
+                soundIconOff.classList.add('hidden');
+            }
+        });
+
+        // Initialize Loop on Window Load
+        window.onload = () => {
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
