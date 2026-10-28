@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UFO Abduction: Earth Invasion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #050510;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            position: relative;
+            width: 1000px;
+            height: 600px;
+            box-shadow: 0 0 30px rgba(0, 255, 200, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #1a3c40;
+        }
+
+        canvas {
+            display: block;
+            background: #000;
+        }
+
+        /* UI Overlays */
+        .ui-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(5, 5, 16, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 42px;
+            color: #00ffcc;
+            text-shadow: 0 0 15px #00ffcc;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        p {
+            font-size: 16px;
+            color: #d1f7ff;
+            margin-bottom: 20px;
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00ffcc, #0088ff);
+            color: #000;
+            border: none;
+            padding: 14px 32px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 200, 0.5);
+            transition: all 0.2s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 200, 0.8);
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 200, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .instructions ul {
+            list-style: none;
+            text-align: left;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #a5f3fc;
+        }
+
+        .instructions span {
+            color: #00ffcc;
+            font-weight: bold;
+        }
+
+        /* HUD Style */
+        #hud {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 5;
+            font-family: monospace;
+            font-size: 16px;
+        }
+
+        .hud-card {
+            background: rgba(0, 20, 30, 0.7);
+            border: 1px solid rgba(0, 255, 200, 0.4);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: #00ffcc;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .bar-container {
+            width: 150px;
+            height: 12px;
+            background: #112;
+            border: 1px solid #00ffcc;
+            border-radius: 6px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 100%;
+            background: #00ffcc;
+            transition: width 0.1s ease;
+        }
+
+        #health-fill { background: #ff3366; }
+        #energy-fill { background: #00ffcc; }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            font-family: monospace;
+            pointer-events: none;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="1000" height="600"></canvas>
+
+        <!-- HUD -->
+        <div id="hud">
+            <div class="hud-card">
+                <div>SCORE: <span id="score-val">0</span></div>
+                <div>ABDUCTED: <span id="abduct-val">0</span></div>
+            </div>
+            <div class="hud-card">
+                <div>HP: <div class="bar-container"><div id="health-fill" class="bar-fill"></div></div></div>
+                <div style="margin-top: 4px;">ENERGY: <div class="bar-container"><div id="energy-fill" class="bar-fill"></div></div></div>
+            </div>
+        </div>
+
+        <div class="controls-hint">
+            [WASD/ลูกศร] เคลื่อนที่ | [Spacebar] ดูดสิ่งมีชีวิต | [X/J] ปล่อยระเบิดทำลายรถถัง
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="ui-panel">
+            <h1>UFO ABDUCTION</h1>
+            <p>สวมบทบาทเป็นยานจานบินต่างดาว บุกยึดโลก ลักพาตัวมนุษย์ และทิ้งระเบิดทำลายรถถัง!</p>
+            
+            <div class="instructions">
+                <ul>
+                    <li><span>ลูกศร / WASD:</span> บังคับทิศทางจานบิน UFO</li>
+                    <li><span>Spacebar:</span> ยิงลำแสง Tractor Beam ดูดมนุษย์และวัว</li>
+                    <li><span>X / J:</span> ปล่อยระเบิดพลาสม่าทำลายรถถัง!</li>
+                    <li><span>คำเตือน:</span> รถถังหนักเกินกว่าจะดูดได้ ต้องใช้ระเบิดทำลายเท่านั้น!</li>
+                </ul>
+            </div>
+
+            <button class="btn" id="start-btn">เริ่มภารกิจบุกโลก</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameover-screen" class="ui-panel hidden">
+            <h1 style="color: #ff3366; text-shadow: 0 0 15px #ff3366;">MISSION FAILED</h1>
+            <p>ยาน UFO ของคุณถูกทำลายโดยระบบป้องกันภัยของมนุษย์โลก!</p>
+            <div class="hud-card" style="margin-bottom: 20px; text-align: center;">
+                <p style="margin: 5px 0;">คะแนนรวม: <span id="final-score" style="color:#00ffcc;">0</span></p>
+                <p style="margin: 5px 0;">จำนวนที่ลักพาตัวได้: <span id="final-abduct" style="color:#00ffcc;">0</span></p>
+            </div>
+            <button class="btn" id="restart-btn">ลองอีกครั้ง</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Audio Synth (Web Audio API)
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioCtx();
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'beam') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'abduct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'hit') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.linearRampToValueAtTime(40, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'bomb') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'explosion') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(100, now);
+                    osc.frequency.linearRampToValueAtTime(20, now + 0.4);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                }
+            } catch(e) {}
+        }
+
+        // Game State
+        let gameState = 'START';
+        let score = 0;
+        let abductedCount = 0;
+        let keys = {};
+
+        // Player UFO Object
+        const ufo = {
+            x: 450,
+            y: 100,
+            width: 120,
+            height: 50,
+            speed: 6,
+            hp: 100,
+            maxHp: 100,
+            energy: 100,
+            maxEnergy: 100,
+            isBeaming: false,
+            bombCooldown: 0
+        };
+
+        // World Elements
+        let targets = [];
+        let missiles = [];
+        let bombs = [];
+        let particles = [];
+        let explosions = [];
+        let stars = [];
+
+        // Generate Background Stars
+        for (let i = 0; i < 60; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * (canvas.height - 120),
+                size: Math.random() * 2,
+                alpha: Math.random()
+            });
+        }
+
+        // Key Listeners
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            if (e.code === 'Space') e.preventDefault();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        // Drop Bomb Function
+        function dropBomb() {
+            if (ufo.bombCooldown <= 0 && ufo.energy >= 10) {
+                ufo.energy -= 10;
+                ufo.bombCooldown = 25;
+                bombs.push({
+                    x: ufo.x + ufo.width / 2,
+                    y: ufo.y + ufo.height - 10,
+                    vy: 4,
+                    radius: 8
+                });
+                playSound('bomb');
+            }
+        }
+
+        // Target Classes (Humans, Cows, Tanks)
+        class Target {
+            constructor() {
+                this.type = Math.random() > 0.4 ? 'human' : (Math.random() > 0.3 ? 'cow' : 'tank');
+                this.x = Math.random() * (canvas.width - 60) + 30;
+                this.y = 520;
+                this.speed = (Math.random() - 0.5) * 1.5;
+                this.isAbducted = false;
+
+                if (this.type === 'human') {
+                    this.width = 12;
+                    this.height = 20;
+                    this.scoreVal = 100;
+                } else if (this.type === 'cow') {
+                    this.width = 24;
+                    this.height = 16;
+                    this.scoreVal = 150;
+                } else if (this.type === 'tank') {
+                    this.width = 44;
+                    this.height = 22;
+                    this.scoreVal = 300;
+                    this.cooldown = 0;
+                }
+            }
+
+            update() {
+                if (!this.isAbducted) {
+                    this.x += this.speed;
+                    if (this.x < 10 || this.x > canvas.width - 50) this.speed *= -1;
+
+                    // Tank Shooting Logic
+                    if (this.type === 'tank') {
+                        this.cooldown++;
+                        if (this.cooldown > 130) {
+                            shootMissile(this.x + this.width / 2, this.y);
+                            this.cooldown = 0;
+                        }
+                    }
+                } else {
+                    // Pulling up towards UFO
+                    this.y -= 4;
+                    this.x += (ufo.x + ufo.width / 2 - this.x) * 0.1;
+
+                    // Check if arrived at UFO
+                    if (this.y <= ufo.y + ufo.height / 2) {
+                        score += this.scoreVal;
+                        abductedCount++;
+                        ufo.energy = Math.min(ufo.maxEnergy, ufo.energy + 15);
+                        playSound('abduct');
+                        createParticles(this.x, this.y, '#00ffcc', 10);
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            draw() {
+                ctx.save();
+                if (this.type === 'human') {
+                    ctx.fillStyle = '#ffcc99';
+                    ctx.fillRect(this.x + 3, this.y, 6, 6); // Head
+                    ctx.fillStyle = '#ff5555';
+                    ctx.fillRect(this.x, this.y + 6, 12, 14); // Body
+                } else if (this.type === 'cow') {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(this.x + 4, this.y + 3, 6, 6);
+                    ctx.fillRect(this.x + 14, this.y + 8, 5, 5);
+                } else if (this.type === 'tank') {
+                    ctx.fillStyle = '#3a4d25';
+                    ctx.fillRect(this.x, this.y + 8, this.width, this.height - 8);
+                    ctx.fillStyle = '#556b2f';
+                    ctx.fillRect(this.x + 10, this.y, 24, 10);
+                    ctx.strokeStyle = '#223311';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + 22, this.y + 4);
+                    ctx.lineTo(this.x + (this.x < ufo.x ? 34 : 10), this.y - 6);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        // Missile Class
+        function shootMissile(x, y) {
+            missiles.push({
+                x: x,
+                y: y,
+                vx: (ufo.x + ufo.width / 2 - x) * 0.02,
+                vy: -5
+            });
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    color: color,
+                    life: 25
+                });
+            }
+        }
+
+        function triggerExplosion(x, y, radius) {
+            explosions.push({
+                x: x,
+                y: y,
+                radius: 5,
+                maxRadius: radius,
+                alpha: 1
+            });
+            playSound('explosion');
+            createParticles(x, y, '#ffaa00', 20);
+        }
+
+        // Game Reset
+        function resetGame() {
+            score = 0;
+            abductedCount = 0;
+            ufo.x = canvas.width / 2 - 60;
+            ufo.y = 80;
+            ufo.hp = 100;
+            ufo.energy = 100;
+            ufo.bombCooldown = 0;
+            targets = [];
+            missiles = [];
+            bombs = [];
+            particles = [];
+            explosions = [];
+
+            for (let i = 0; i < 8; i++) {
+                targets.push(new Target());
+            }
+        }
+
+        // Main Update Loop
+        function update() {
+            if (gameState !== 'PLAYING') return;
+
+            // UFO Controls
+            if (keys['ArrowLeft'] || keys['KeyA']) ufo.x -= ufo.speed;
+            if (keys['ArrowRight'] || keys['KeyD']) ufo.x += ufo.speed;
+            if (keys['ArrowUp'] || keys['KeyW']) ufo.y -= ufo.speed;
+            if (keys['ArrowDown'] || keys['KeyS']) ufo.y += ufo.speed;
+
+            if (keys['KeyX'] || keys['KeyJ']) {
+                dropBomb();
+            }
+
+            if (ufo.bombCooldown > 0) ufo.bombCooldown--;
+
+            ufo.x = Math.max(0, Math.min(canvas.width - ufo.width, ufo.x));
+            ufo.y = Math.max(20, Math.min(350, ufo.y));
+
+            // Tractor Beam Logic
+            ufo.isBeaming = (keys['Space']) && ufo.energy > 0;
+
+            if (ufo.isBeaming) {
+                ufo.energy -= 0.25;
+                playSound('beam');
+
+                const beamBottomLeft = ufo.x + ufo.width / 2 - 70;
+                const beamBottomRight = ufo.x + ufo.width / 2 + 70;
+
+                targets.forEach(t => {
+                    if (t.type !== 'tank' && !t.isAbducted && t.x >= beamBottomLeft && t.x <= beamBottomRight) {
+                        t.isAbducted = true;
+                    }
+                });
+            }
+
+            if (!ufo.isBeaming && ufo.energy < ufo.maxEnergy) {
+                ufo.energy += 0.08;
+            }
+
+            if (targets.length < 7) {
+                targets.push(new Target());
+            }
+
+            targets = targets.filter(t => t.update());
+
+            // Bombs Update
+            for (let i = bombs.length - 1; i >= 0; i--) {
+                let b = bombs[i];
+                b.y += b.vy;
+
+                let hitTarget = false;
+                for (let j = targets.length - 1; j >= 0; j--) {
+                    let t = targets[j];
+                    if (b.x >= t.x && b.x <= t.x + t.width &&
+                        b.y >= t.y && b.y <= t.y + t.height) {
+                        
+                        score += t.scoreVal;
+                        triggerExplosion(b.x, b.y, 40);
+                        targets.splice(j, 1);
+                        hitTarget = true;
+                        break;
+                    }
+                }
+
+                if (hitTarget) {
+                    bombs.splice(i, 1);
+                    continue;
+                }
+
+                if (b.y >= 535) {
+                    triggerExplosion(b.x, 535, 35);
+                    bombs.splice(i, 1);
+                }
+            }
+
+            // Explosions Update
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                let ex = explosions[i];
+                ex.radius += 2.5;
+                ex.alpha -= 0.05;
+
+                targets.forEach((t, index) => {
+                    const dist = Math.hypot(ex.x - (t.x + t.width/2), ex.y - (t.y + t.height/2));
+                    if (dist < ex.radius) {
+                        score += t.scoreVal;
+                        targets.splice(index, 1);
+                    }
+                });
+
+                if (ex.alpha <= 0) {
+                    explosions.splice(i, 1);
+                }
+            }
+
+            // Missiles Update
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                let m = missiles[i];
+                m.x += m.vx;
+                m.y += m.vy;
+
+                if (m.x >= ufo.x && m.x <= ufo.x + ufo.width &&
+                    m.y >= ufo.y && m.y <= ufo.y + ufo.height) {
+                    ufo.hp -= 15;
+                    playSound('hit');
+                    createParticles(m.x, m.y, '#ff3366', 15);
+                    missiles.splice(i, 1);
+
+                    if (ufo.hp <= 0) {
+                        gameState = 'GAMEOVER';
+                        showGameOver();
+                    }
+                    continue;
+                }
+
+                if (m.y < 0 || m.x < 0 || m.x > canvas.width) {
+                    missiles.splice(i, 1);
+                }
+            }
+
+            // Particles Update
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            // HUD Update
+            document.getElementById('score-val').innerText = Math.floor(score);
+            document.getElementById('abduct-val').innerText = abductedCount;
+            document.getElementById('health-fill').style.width = Math.max(0, ufo.hp) + '%';
+            document.getElementById('energy-fill').style.width = Math.max(0, ufo.energy) + '%';
+        }
+
+        // Draw Vector UFO Saucer
+        function drawUFO(x, y, w, h) {
+            ctx.save();
+            const cx = x + w / 2;
+            const cy = y + h / 2;
+
+            // Glass Dome Glow
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(cx, cy - 5, 22, Math.PI, 0);
+            ctx.fill();
+
+            // Metallic Saucer Body
+            ctx.fillStyle = '#607d8b';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 5, w / 2, h / 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#37474f';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 10, w / 2 - 10, h / 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bottom Glowing Engine Light
+            ctx.fillStyle = '#ff9800';
+            ctx.shadowColor = '#ff9800';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 15, 18, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Main Rendering Loop
+        function draw() {
+            ctx.fillStyle = '#050515';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Stars
+            ctx.fillStyle = '#ffffff';
+            stars.forEach(s => {
+                ctx.globalAlpha = s.alpha;
+                ctx.fillRect(s.x, s.y, s.size, s.size);
+            });
+            ctx.globalAlpha = 1.0;
+
+            // Ground Landscape
+            ctx.fillStyle = '#0a1a1f';
+            ctx.beginPath();
+            ctx.moveTo(0, 500);
+            ctx.quadraticCurveTo(250, 480, 500, 510);
+            ctx.quadraticCurveTo(750, 530, 1000, 500);
+            ctx.lineTo(1000, 600);
+            ctx.lineTo(0, 600);
+            ctx.fill();
+
+            ctx.fillStyle = '#0f2b30';
+            ctx.fillRect(0, 535, canvas.width, 65);
+
+            // Draw Beam
+            if (ufo.isBeaming) {
+                const ufoCenterX = ufo.x + ufo.width / 2;
+                const ufoBottomY = ufo.y + ufo.height;
+
+                const grad = ctx.createLinearGradient(0, ufoBottomY, 0, 540);
+                grad.addColorStop(0, 'rgba(0, 255, 200, 0.8)');
+                grad.addColorStop(1, 'rgba(0, 255, 200, 0.05)');
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.moveTo(ufoCenterX - 20, ufoBottomY);
+                ctx.lineTo(ufoCenterX + 20, ufoBottomY);
+                ctx.lineTo(ufoCenterX + 70, 540);
+                ctx.lineTo(ufoCenterX - 70, 540);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            targets.forEach(t => t.draw());
+
+            // Bombs
+            ctx.fillStyle = '#00ffff';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00ffff';
+            bombs.forEach(b => {
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0;
+
+            // Explosions
+            explosions.forEach(ex => {
+                ctx.save();
+                ctx.globalAlpha = ex.alpha;
+                ctx.fillStyle = '#ff6600';
+                ctx.beginPath();
+                ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Missiles
+            ctx.fillStyle = '#ff3300';
+            missiles.forEach(m => {
+                ctx.fillRect(m.x - 2, m.y - 2, 5, 8);
+            });
+
+            // Particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 3, 3);
+            });
+
+            // Draw Vector UFO
+            drawUFO(ufo.x, ufo.y, ufo.width, ufo.height);
+        }
+
+        // Loop Runner
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // UI Handlers
+        document.getElementById('start-btn').addEventListener('click', () => {
+            initAudio();
+            document.getElementById('start-screen').classList.add('hidden');
+            gameState = 'PLAYING';
+            resetGame();
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            document.getElementById('gameover-screen').classList.add('hidden');
+            gameState = 'PLAYING';
+            resetGame();
+        });
+
+        function showGameOver() {
+            document.getElementById('final-score').innerText = Math.floor(score);
+            document.getElementById('final-abduct').innerText = abductedCount;
+            document.getElementById('gameover-screen').classList.remove('hidden');
+        }
+
+        // Start Loop
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
